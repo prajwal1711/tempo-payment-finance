@@ -12,6 +12,10 @@ vercel --prod
 
 If an expired `VERCEL_TOKEN` is set in your shell, remove it for the command (`env -u VERCEL_TOKEN vercel --prod`) and complete CLI sign-in. Add no private-key environment variables to the hosting project.
 
+## Hosted preview
+
+The published preview is https://prajwal1711.github.io/tempo-payment-finance/. GitHub Pages was used while Vercel authentication was unavailable. It serves the same client application and live vault without a signing backend. The Pages workflow sets `GITHUB_PAGES=true` for a static export and repository base path; normal builds retain the Vercel Next.js configuration.
+
 ## Compiler and dependencies
 
 `contracts/foundry.toml` pins compiler 0.8.30, Prague and optimizer 200. `scripts/forge.mjs` uses `.tooling/forge` if present, otherwise your installed forge. The forge-std submodule is pinned to v1.15.0's commit. Application dependencies and upstream Accounts publishing fixes are pinned in the pnpm lockfile.

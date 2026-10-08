@@ -1,12 +1,23 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { Providers } from '@/components/providers';
-import { Shell } from '@/components/shell';
+import type { Metadata } from "next";
+import "./globals.css";
+import { Providers } from "@/components/providers";
+import { Shell } from "@/components/shell";
 
 export const metadata: Metadata = {
-  title: 'Tempo Payment Finance',
-  description: 'Working capital for the hours between payout and settlement. A Tempo testnet demonstration.',
+  title: "Tempo Payment Finance",
+  description:
+    "Working capital for the hours between payout and settlement. A Tempo testnet demonstration.",
 };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><Providers><Shell>{children}</Shell></Providers></body></html>;
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>
+          <Shell>{children}</Shell>
+        </Providers>
+      </body>
+    </html>
+  );
 }

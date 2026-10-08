@@ -4,6 +4,8 @@ A working Tempo Moderato demonstration of unsecured revolving credit for a remit
 
 **Testnet only.** Northstar Remit, its underwriting evidence, and its card-settlement provider are fictional fixtures. All deployed financial activity uses actual test tokens and actual block timestamps.
 
+**[Open the hosted demo](https://prajwal1711.github.io/tempo-payment-finance/) · [Source repository](https://github.com/prajwal1711/tempo-payment-finance)**
+
 ## Run the application
 
 Requires Node 22+ and pnpm 11.25.0.
@@ -87,6 +89,7 @@ Repay the staged loan from any funded wallet on `/settlement` before demonstrati
 
 ## Accounting and demo material
 
+- [Verification record](docs/VERIFICATION.md)
 - [Accounting and contract interfaces](docs/ACCOUNTING.md)
 - [Recording script and rehearsal checklist](docs/DEMO.md)
 - [Deployment and operational notes](docs/DEPLOYMENT.md)
