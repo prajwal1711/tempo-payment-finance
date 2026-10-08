@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-10-08T17:54:13.875Z",
+  "network": {
+    "chainId": 42431,
+    "symbol": "AlphaUSD",
+    "decimals": 6
+  },
+  "compiler": "0.8.30",
+  "evmVersion": "prague",
+  "safeERC20Version": "5.6.1",
+  "probe": "0xacdb44c1188d38c44e83fd3947a7859a6b738593",
+  "shell": "0xc4d65a903de4debd8ed91e0e6607e87948499fa5",
+  "memo": "0x5e3fc5e8fc4cfe4892fd7a543086905a07d82f6f16e4c232a2075131e1cc05f3",
+  "receipts": {
+    "ordinaryRoundTrip": "0xad2e84572a2149b089ed078ccaa80f70352f56a18242c10a116e5a9bcb1aa5b5",
+    "memoRoundTrip": "0x84215b1f6b7a465de6976b37b05eb0bee8aadf134154083f1183364b9ec50bbc",
+    "atomicRollback": "0x8a0501ece6a07d831a51a42a6145a29dea14fc4793d9ab500a16f03d2d11ea96",
+    "shellDeposit": "0xe96222467254227799791cee9753d2e13e05d8b41c5625ce3ede16664967376c",
+    "shellRedeem": "0xd776cc60aa10e6f27a0d0d1056d9a5bf3a505e69d986334fcad5863e9a06d098"
+  },
+  "assertions": [
+    "six-decimal AlphaUSD",
+    "SafeERC20 exact round trip",
+    "memo exact round trip",
+    "two matching memo events",
+    "atomic rollback of approval and transfers",
+    "18-decimal ERC4626 shares",
+    "exact shell deposit and redemption"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "label": "SIMULATED UNDERWRITING — HACKATHON FIXTURE",
+  "company": "Northstar Remit (fictional)",
+  "corridor": "UK → India (illustrative)",
+  "business": "Remittance company prefunding customer payouts before card/acquirer settlement arrives",
+  "settlementSource": "Demo card-settlement provider",
+  "expectedSettlementAmount": "1000.000000",
+  "prefundingRequirement": "600.000000",
+  "standardSettlementDelayHours": 48,
+  "creditLimit": "750.000000",
+  "aprBps": 1800,
+  "review": [
+    "Company and beneficial-owner review represented by fixtures",
+    "Historical settlement statements represented by fixtures",
+    "Settlement delay and liquidity requirement represented by fixtures",
+    "Manual unsecured credit decision; no principal guarantee"
+  ]
+}

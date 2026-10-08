@@ -1,0 +1,235 @@
+{
+  "vaultAddress": "0xe26e1e6812d8423f3ad64acb1ddf2ad0f4984e1f",
+  "startedAt": "2026-10-08T18:25:49.839Z",
+  "assertions": [
+    "Main pool starts without active loans",
+    "48-hour working capital: draw conserves NAV",
+    "48-hour working capital: matching transfer memo",
+    "Partial repayment conserves NAV",
+    "Partial allocation sums to payment",
+    "Interest allocated before principal",
+    "Full repayment reopens line: loan settled",
+    "Full repayment conserves NAV",
+    "Borrowing capacity restored",
+    "60-second demonstration: draw conserves NAV",
+    "60-second demonstration: matching transfer memo",
+    "Overdue borrower draw reason",
+    "Overdue draw receipt reverted",
+    "Escrow preserves total supply",
+    "Pending request exists",
+    "Overdue processing receipt reverted",
+    "Settlement provider repays matching batch: loan settled",
+    "Settlement repayment conserves NAV",
+    "Distinct settlement payer recorded",
+    "Matching settlement batch recorded",
+    "Investor received exact payout",
+    "Escrowed shares burned",
+    "Pending pointer cleared",
+    "Separate loss scenario: draw conserves NAV",
+    "Separate loss scenario: matching transfer memo",
+    "Write-off reduces NAV once",
+    "Written-off loan removed from active ledger",
+    "Recovery increases NAV exactly once",
+    "Written-off debt has frozen interest",
+    "Recover remaining written-off debt: loan settled",
+    "Final recovery increases NAV once",
+    "Default exposure cleared",
+    "Manager reapproval still required",
+    "Staged 48-hour live loan: draw conserves NAV",
+    "Staged 48-hour live loan: matching transfer memo"
+  ],
+  "transactions": [
+    {
+      "label": "48-hour working capital",
+      "role": "BORROWER",
+      "hash": "0x8ce10564d51f1008a1f491f0f75907390d0f958b74db37b4425f9f093ae140e4",
+      "blockNumber": "38742439",
+      "status": "success"
+    },
+    {
+      "label": "Partial interest-first repayment",
+      "role": "BORROWER",
+      "hash": "0x1a793a72b458f59d7c6ae965514faf4bc6b021df958402d9a7d8642510419115",
+      "blockNumber": "38742446",
+      "status": "success"
+    },
+    {
+      "label": "Full repayment reopens line",
+      "role": "BORROWER",
+      "hash": "0xac72b474356053bca78f7661a1a3dfa8d0e27ec3f4896610d77be899dc6fd1f6",
+      "blockNumber": "38742456",
+      "status": "success"
+    },
+    {
+      "label": "60-second demonstration",
+      "role": "BORROWER",
+      "hash": "0x3b0ae675ac7a4420d06f362c79c8960021c58072a76b125710cdcc0e9acc505d",
+      "blockNumber": "38742471",
+      "status": "success"
+    },
+    {
+      "label": "Rejected overdue draw",
+      "role": "BORROWER",
+      "hash": "0x4327e48b91c80952b292cfec3c69fcc24fabe626824653d6155358a8e842dd6a",
+      "blockNumber": "38742576",
+      "status": "reverted"
+    },
+    {
+      "label": "Escrow investor A shares",
+      "role": "INVESTOR_A",
+      "hash": "0x258e916853d4b7ccae2f594082be93f20fe6ee58da4f4b3066b239c38972aa44",
+      "blockNumber": "38742582",
+      "status": "success"
+    },
+    {
+      "label": "Rejected overdue processing",
+      "role": "INVESTOR_B",
+      "hash": "0xbafd32bc9b18566fb709572e867e8ab6bf438c2f3e9d21fe38c2da910c7bf51a",
+      "blockNumber": "38742587",
+      "status": "reverted"
+    },
+    {
+      "label": "Settlement provider repays matching batch",
+      "role": "SETTLEMENT",
+      "hash": "0x02ad0cf47b167da63eb1cdbe640ad0f4c3c196e483de166358798400fa2b7915",
+      "blockNumber": "38742592",
+      "status": "success"
+    },
+    {
+      "label": "Permissionless FIFO investor payout",
+      "role": "INVESTOR_B",
+      "hash": "0x7b36325b7afdaa0c730dac2ab6e13b03cab1f45e9b9de368ee761dfab1124d5b",
+      "blockNumber": "38742602",
+      "status": "success"
+    },
+    {
+      "label": "Separate loss scenario",
+      "role": "BORROWER",
+      "hash": "0x705ec32db6f645bb4b2c14737c738526aa2cee5f6236083b2c6e02a2a4861730",
+      "blockNumber": "38742612",
+      "status": "success"
+    },
+    {
+      "label": "Manager recognizes full loss",
+      "role": "MANAGER",
+      "hash": "0xa74d55cd2292ebd45f66bc7cd22540a796fc386ac15b2b5979b849ad6c4b74fe",
+      "blockNumber": "38742719",
+      "status": "success"
+    },
+    {
+      "label": "Partial written-off debt recovery",
+      "role": "SETTLEMENT",
+      "hash": "0x692a914030317fd27175fe1d41bfb434952d4f8e68f77662501a72803838f921",
+      "blockNumber": "38742730",
+      "status": "success"
+    },
+    {
+      "label": "Recover remaining written-off debt",
+      "role": "SETTLEMENT",
+      "hash": "0x18392fae72e5c6d63c4ff7e292d1dd14bc5e959319c9c016fecb1b3a6bc555b9",
+      "blockNumber": "38742739",
+      "status": "success"
+    },
+    {
+      "label": "Manager reapproves recovered borrower",
+      "role": "MANAGER",
+      "hash": "0xd077964d82fc22645c59228fd1b2a5bf4ac9d7006d656af55e89ebbf20295b3f",
+      "blockNumber": "38742750",
+      "status": "success"
+    },
+    {
+      "label": "Investor A replenishes demonstration position",
+      "role": "INVESTOR_A",
+      "hash": "0xc4dfc913bf75ad5c858663cc085351680d8597c507374ee7532fe891380139fc",
+      "blockNumber": "38742755",
+      "status": "success"
+    },
+    {
+      "label": "Staged 48-hour live loan",
+      "role": "BORROWER",
+      "hash": "0x2d68593469ad8c484cf60b107e2e1cd66b15699ca9669d0982cb9afb1dd765e1",
+      "blockNumber": "38742760",
+      "status": "success"
+    }
+  ],
+  "snapshots": [
+    {
+      "label": "seeded",
+      "blockNumber": "38742434",
+      "cash": "1000000000",
+      "principal": "0",
+      "interest": "0",
+      "nav": "1000000000",
+      "shares": "1000000000000000000000",
+      "hasOverdue": false,
+      "pendingRequests": "0",
+      "queueHead": "1",
+      "queueTail": "0",
+      "depositsPaused": false,
+      "drawsPaused": false,
+      "interestPaid": "0",
+      "writtenOff": "0",
+      "recovered": "0",
+      "timestamp": "1791483952"
+    },
+    {
+      "label": "after-investor-payout",
+      "blockNumber": "38742608",
+      "cash": "500000144",
+      "principal": "0",
+      "interest": "0",
+      "nav": "500000144",
+      "shares": "500000000000000000000",
+      "hasOverdue": false,
+      "pendingRequests": "0",
+      "queueHead": "2",
+      "queueTail": "1",
+      "depositsPaused": false,
+      "drawsPaused": false,
+      "interestPaid": "286",
+      "writtenOff": "0",
+      "recovered": "0",
+      "timestamp": "1791484059"
+    },
+    {
+      "label": "after-writeoff",
+      "blockNumber": "38742726",
+      "cash": "450000144",
+      "principal": "0",
+      "interest": "0",
+      "nav": "450000144",
+      "shares": "500000000000000000000",
+      "hasOverdue": false,
+      "pendingRequests": "0",
+      "queueHead": "2",
+      "queueTail": "1",
+      "depositsPaused": false,
+      "drawsPaused": false,
+      "interestPaid": "286",
+      "writtenOff": "50000018",
+      "recovered": "0",
+      "timestamp": "1791484132"
+    },
+    {
+      "label": "ready-for-demo",
+      "blockNumber": "38742765",
+      "cash": "400000162",
+      "principal": "600000000",
+      "interest": "6",
+      "nav": "1000000168",
+      "shares": "999999838000052811982",
+      "hasOverdue": false,
+      "pendingRequests": "0",
+      "queueHead": "2",
+      "queueTail": "1",
+      "depositsPaused": false,
+      "drawsPaused": false,
+      "interestPaid": "304",
+      "writtenOff": "50000018",
+      "recovered": "50000018",
+      "timestamp": "1791484156"
+    }
+  ],
+  "completedAt": "2026-10-08T18:29:17.924Z",
+  "passed": true
+}

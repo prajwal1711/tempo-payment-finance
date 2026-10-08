@@ -1,0 +1,10 @@
+{
+  "vaultAddress": "0xe26e1e6812d8423f3ad64acb1ddf2ad0f4984e1f",
+  "seededAt": "2026-10-08T18:16:56.108Z",
+  "diligenceHash": "0xd71f74c9f73a765a4b1a5a42affc4151e9e1f6ab99595713846855f079dab011",
+  "receipts": {
+    "approval": "0xbc86622b7f59e06b3ad462f022a2440df8a82555bb359bf70742077a7cd324fe",
+    "INVESTOR_A": "0x3a073de99e2c0ec3c4188a3ef004cf4745c675d91aaa5a363fcb6a101f0ecd4e",
+    "INVESTOR_B": "0xfd8b3e9c1cc2faa627b446de4127a825cca388f14659593c07456dec9cca8276"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "tempo-payment-finance",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "contracts:build": "node scripts/forge.mjs build",
+    "contracts:test": "node scripts/forge.mjs test -vv",
+    "probe": "node --env-file=.env.local scripts/probe.mjs",
+    "deploy": "node --env-file=.env.local scripts/deploy.mjs",
+    "seed": "node --env-file=.env.local scripts/seed.mjs",
+    "verify:live": "node --env-file=.env.local scripts/verify-live.mjs",
+    "manage": "node --env-file=.env.local scripts/manage.mjs"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.6.1",
+    "@tanstack/react-query": "5.104.1",
+    "accounts": "0.18.5",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "viem": "2.57.4",
+    "wagmi": "3.7.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,9 @@
+minimumReleaseAgeExclude:
+  - ox@0.14.54
+  - viem@2.57.4
+
+# accounts@0.18.5 published two unresolved catalog references. These versions
+# come from its publishing commit 9eee44dda5dc565822326b751f7dc880dd199bfb.
+overrides:
+  'accounts>hono': '4.13.5'
+  'accounts>mppx': '0.11.0'

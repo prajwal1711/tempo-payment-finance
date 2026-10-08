@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.tooling/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+tsconfig.tsbuildinfo
+playwright-report/
+test-results/
+*.log
+out/
+.vercel/

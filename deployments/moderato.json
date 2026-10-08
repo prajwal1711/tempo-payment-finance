@@ -1,0 +1,30 @@
+{
+  "deployed": true,
+  "chainId": 42431,
+  "rpcUrl": "https://rpc.moderato.tempo.xyz",
+  "explorerUrl": "https://explore.testnet.tempo.xyz",
+  "vaultAddress": "0xe26e1e6812d8423f3ad64acb1ddf2ad0f4984e1f",
+  "assetAddress": "0x20c0000000000000000000000000000000000001",
+  "feeTokenAddress": "0x20c0000000000000000000000000000000000000",
+  "assetDecimals": 6,
+  "shareDecimals": 18,
+  "deploymentBlock": "38741516",
+  "deploymentTransaction": "0x84bfbaa606dc8e6d6c8a5a2ad3311f7b3f8c469be3e1bc7054ef5323091c73fa",
+  "managerAddress": "0xE5f940c1079BE2084c18AFBB929d82F63d482D17",
+  "demoBorrowerAddress": "0xf468ff61B7045200d7801461241600300C8076f2",
+  "demoSettlementProviderAddress": "0x6568E97F523421215e0Cbf4816943A94f487a3C8",
+  "investorAAddress": "0xD29fA059075353530C0A2C80e62409cC1f98e983",
+  "investorBAddress": "0xA46f1169B0c90Cc8a003Dc8AE1C1A72B2584502d",
+  "contractVersion": "0.1.0",
+  "compiler": "0.8.30",
+  "evmVersion": "prague",
+  "deployedAt": "2026-10-08T18:16:29.791Z",
+  "constructorArguments": [
+    "0x20c0000000000000000000000000000000000001",
+    "0xE5f940c1079BE2084c18AFBB929d82F63d482D17"
+  ],
+  "optimizer": {
+    "enabled": true,
+    "runs": 200
+  }
+}
