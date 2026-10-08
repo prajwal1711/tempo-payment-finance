@@ -1,6 +1,10 @@
 "use client";
 import { useState, useRef } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { useAccount, useWalletClient } from "wagmi";
 import {
   encodeFunctionData,
@@ -25,14 +29,31 @@ import type {
   Snapshot,
 } from "./types";
 
-export function usePool() {
+// One shared chain reference anchors every financial query on a screen.
+function useSnapshotBlock(poll = false) {
   return useQuery({
-    queryKey: ["pool", vaultAddress],
-    refetchInterval: 5_000,
+    queryKey: ["snapshot-block", deployment.chainId],
+    refetchInterval: poll ? 5_000 : false,
+    queryFn: () => publicClient.getBlock({ blockTag: "latest" }),
+  });
+}
+
+export function SnapshotPoller() {
+  useSnapshotBlock(true);
+  return null;
+}
+
+export function usePool() {
+  const anchor = useSnapshotBlock();
+  const block = anchor.data;
+  const query = useQuery({
+    queryKey: ["pool", vaultAddress, block?.number.toString()],
+    enabled: !!block,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!deployment.deployed)
         throw new Error("Vault deployment is not configured.");
-      const block = await publicClient.getBlock();
+      if (!block) throw new Error("Waiting for the snapshot block.");
       const [snapshot, owner, sharePrice, pendingOwner] = await Promise.all([
         readVault("getPoolSnapshot", [], block.number),
         readVault("owner", [], block.number),
@@ -48,6 +69,14 @@ export function usePool() {
       };
     },
   });
+  return {
+    ...query,
+    error: query.error || anchor.error,
+    refetch: async () => {
+      await anchor.refetch();
+      return query.refetch();
+    },
+  };
 }
 
 export function useActivity() {
@@ -91,20 +120,25 @@ export function useActivity() {
 }
 
 export function useLoans() {
+  const block = useSnapshotBlock().data;
   const activity = useActivity();
   const drawEvents = activity.data?.filter(
-    (event) => event.eventName === "LoanDrawn",
+    (event) =>
+      event.eventName === "LoanDrawn" &&
+      !!block &&
+      event.blockNumber <= block.number,
   );
   return useQuery({
     queryKey: [
       "loans",
       vaultAddress,
+      block?.number.toString(),
       drawEvents?.map((event) => String(event.args.loanId)).join(","),
     ],
-    enabled: !!activity.data,
-    refetchInterval: 5_000,
+    enabled: !!activity.data && !!block,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const block = await publicClient.getBlock();
+      if (!block) throw new Error("Waiting for the snapshot block.");
       const loans = await Promise.all(
         (drawEvents || []).map(async (event) => {
           const id = event.args.loanId as bigint;
@@ -122,18 +156,24 @@ export function useLoans() {
           } as LoanRecord;
         }),
       );
-      return { loans: loans.reverse(), timestamp: block.timestamp };
+      return {
+        loans: loans.reverse(),
+        timestamp: block.timestamp,
+        blockNumber: block.number,
+      };
     },
   });
 }
 
 export function useBorrower(address: Address) {
+  const block = useSnapshotBlock().data;
   return useQuery({
-    queryKey: ["borrower", vaultAddress, address],
-    refetchInterval: 5_000,
-    enabled: deployment.deployed,
+    queryKey: ["borrower", vaultAddress, address, block?.number.toString()],
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === address ? previous : undefined,
+    enabled: deployment.deployed && !!block,
     queryFn: async () => {
-      const block = await publicClient.getBlock();
+      if (!block) throw new Error("Waiting for the snapshot block.");
       const [borrower, available, credit] = await Promise.all([
         readVault("getBorrower", [address], block.number),
         readVault("availableToDraw", [address], block.number),
@@ -151,12 +191,14 @@ export function useBorrower(address: Address) {
 }
 
 export function usePosition(address: Address) {
+  const block = useSnapshotBlock().data;
   return useQuery({
-    queryKey: ["position", vaultAddress, address],
-    enabled: deployment.deployed,
-    refetchInterval: 5_000,
+    queryKey: ["position", vaultAddress, address, block?.number.toString()],
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === address ? previous : undefined,
+    enabled: deployment.deployed && !!block,
     queryFn: async () => {
-      const block = await publicClient.getBlock();
+      if (!block) throw new Error("Waiting for the snapshot block.");
       const [assets, fees, ownedShares, pendingId] = await Promise.all([
         publicClient.readContract({
           address: assetAddress,
@@ -208,21 +250,26 @@ export function usePosition(address: Address) {
 }
 
 export function useRedemptions() {
+  const block = useSnapshotBlock().data;
   const activity = useActivity();
   const events = activity.data?.filter(
-    (event) => event.eventName === "RedemptionRequested",
+    (event) =>
+      event.eventName === "RedemptionRequested" &&
+      !!block &&
+      event.blockNumber <= block.number,
   );
   return useQuery({
     queryKey: [
       "redemptions",
       vaultAddress,
+      block?.number.toString(),
       events?.map((e) => String(e.args.requestId)).join(","),
       activity.data?.length,
     ],
-    enabled: !!activity.data,
-    refetchInterval: 5_000,
+    enabled: !!activity.data && !!block,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const block = await publicClient.getBlock();
+      if (!block) throw new Error("Waiting for the snapshot block.");
       return Promise.all(
         (events || []).map(async (event) => {
           const id = event.args.requestId as bigint;
@@ -238,7 +285,9 @@ export function useRedemptions() {
           )) as bigint;
           const payout = activity.data?.find(
             (e) =>
-              e.eventName === "RedemptionProcessed" && e.args.requestId === id,
+              e.eventName === "RedemptionProcessed" &&
+              e.args.requestId === id &&
+              e.blockNumber <= block.number,
           );
           return {
             ...request,
@@ -366,7 +415,10 @@ export function useTransaction() {
         throw new Error(
           "Transaction reverted. No economic changes were committed.",
         );
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries({ queryKey: ["snapshot-block"] });
+      await queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] !== "snapshot-block",
+      });
       setState({ pending: false, label, stage: "Confirmed on Tempo", hash });
       return hash;
     } catch (error) {

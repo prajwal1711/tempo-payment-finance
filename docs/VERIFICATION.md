@@ -10,6 +10,7 @@
 
 ## Application
 
+- Financial queries share one five-second reference-block poller, with historical event filtering and address-safe previous-data display during refresh.
 - TypeScript check and production build passed locally; the first independent GitHub Verify workflow also passed from a fresh checkout.
 - Static export and GitHub Pages deployment passed; all five routes served successfully.
 - Browser checks inspected overview, investor, borrower, manager, and settlement routes without wallet connection and loaded actual vault state.

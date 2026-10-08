@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SnapshotPoller } from "@/lib/hooks";
 import { walletConfig } from "@/lib/wallet";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -13,7 +14,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <WagmiProvider config={walletConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <SnapshotPoller />
+        {children}
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }

@@ -176,7 +176,11 @@ export default function Overview() {
       <div className="section-space grid-two">
         <Panel
           title="Credit ledger"
-          aside={`${loans.data?.loans.filter((l) => l.status === 1).length || 0} ACTIVE LOANS`}
+          aside={
+            loans.data
+              ? `${loans.data.loans.filter((l) => l.status === 1).length} ACTIVE LOANS`
+              : "READING LOANS…"
+          }
         >
           <LoanTable
             loans={loans.data?.loans.slice(0, 4)}

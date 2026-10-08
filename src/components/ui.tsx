@@ -187,7 +187,7 @@ export function LoanStatus({ loan, at }: { loan: LoanRecord; at: bigint }) {
   );
 }
 export function LoanTable({
-  loans = [],
+  loans,
   at = 0n,
   onSelect,
 }: {
@@ -195,6 +195,8 @@ export function LoanTable({
   at?: bigint;
   onSelect?: (loan: LoanRecord) => void;
 }) {
+  if (!loans)
+    return <div className="empty">Loading confirmed loan records…</div>;
   return loans.length ? (
     <div className="table-wrap">
       <table>
