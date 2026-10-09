@@ -14,15 +14,26 @@
     "deploy": "node --env-file=.env.local scripts/deploy.mjs",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
     "verify:live": "node --env-file=.env.local scripts/verify-live.mjs",
-    "manage": "node --env-file=.env.local scripts/manage.mjs"
+    "manage": "node --env-file=.env.local scripts/manage.mjs",
+    "test:ui": "tsx --test tests/ui.test.ts",
+    "verify:history": "tsx tests/verify-history.ts",
+    "format:ui": "prettier --write src/app src/components src/lib/format.ts src/lib/hooks.ts src/lib/history*.ts src/lib/workspace.ts tests components.json",
+    "verify:batches": "tsx tests/verify-batches.ts"
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.6.1",
     "@tanstack/react-query": "5.104.1",
     "accounts": "0.18.5",
+    "class-variance-authority": "0.7.1",
+    "cn": "0.4.0",
+    "lucide-react": "1.52.0",
     "next": "16.4.0",
+    "radix-ui": "1.7.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "recharts": "3.8.0",
+    "shadcn": "4.21.4",
+    "tw-animate-css": "1.4.0",
     "viem": "2.57.4",
     "wagmi": "3.7.7"
   },
@@ -31,7 +42,9 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "prettier": "3.9.9",
     "tailwindcss": "^4.1.0",
+    "tsx": "4.23.15",
     "typescript": "5.9.3"
   }
 }

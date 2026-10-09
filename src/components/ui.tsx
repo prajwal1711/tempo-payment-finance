@@ -2,63 +2,70 @@
 import { useEffect, useState } from "react";
 import { usePool } from "@/lib/hooks";
 import { explorer } from "@/lib/chain";
-import { money, short, timestamp } from "@/lib/format";
+import { alpha, shares, short, timestamp } from "@/lib/format";
 import type { Activity, LoanRecord } from "@/lib/types";
 import type { Hash } from "viem";
-
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Input } from "./ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import {
+  CircleAlert,
+  ArrowUpRight,
+  LoaderCircle,
+  Check,
+  ArrowRightLeft,
+} from "lucide-react";
 export function PageHeader({
-  eyebrow,
   title,
   subtitle,
+  actions,
 }: {
-  eyebrow: string;
   title: string;
   subtitle: string;
+  eyebrow?: string;
+  actions?: React.ReactNode;
 }) {
   const pool = usePool();
   return (
     <>
       <div className="page-header">
         <div>
-          <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           <p className="subtitle">{subtitle}</p>
         </div>
-        <div className="snapshot">
-          <span className="status-dot" />
-          ON-CHAIN SNAPSHOT
-          <br />
-          <b>
-            {pool.data
-              ? `Block ${pool.data.blockNumber.toLocaleString()}`
-              : "Connecting to Tempo…"}
-          </b>
-          <br />
-          {pool.data
-            ? timestamp(pool.data.snapshot.timestamp)
-            : "Read-only access available"}
-        </div>
+        {actions && <div className="page-actions">{actions}</div>}
       </div>
-      {pool.error && (
-        <div className="transaction-error" role="alert">
-          Unable to load pool: {pool.error.message}
-          <button
-            className="secondary-button"
-            style={{ marginLeft: 12 }}
-            onClick={() => pool.refetch()}
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      <QueryError
+        error={pool.error}
+        retry={() => pool.refetch()}
+        label="pool snapshot"
+      />
     </>
+  );
+}
+export function SnapshotTime() {
+  const pool = usePool();
+  return (
+    <p className="snapshot">
+      {pool.data
+        ? `Block ${pool.data.blockNumber.toLocaleString()} · ${timestamp(pool.data.snapshot.timestamp)}`
+        : "Loading on-chain snapshot…"}
+    </p>
   );
 }
 export function Metric({
   label,
   value,
   note,
-  icon = "↗",
 }: {
   label: string;
   value: string;
@@ -67,10 +74,7 @@ export function Metric({
 }) {
   return (
     <div className="metric">
-      <div className="metric-label">
-        {label}
-        <span aria-hidden>{icon}</span>
-      </div>
+      <div className="metric-label">{label}</div>
       <div className="metric-value">{value}</div>
       <div className="metric-note">{note}</div>
     </div>
@@ -91,7 +95,7 @@ export function Panel({
     <section className={`panel ${className}`}>
       <div className="panel-header">
         <h2>{title}</h2>
-        {aside && <span>{aside}</span>}
+        {aside && <div>{aside}</div>}
       </div>
       {children}
     </section>
@@ -110,32 +114,26 @@ export function TxStatus({
   hash?: Hash;
   error?: string;
 }) {
-  if (error)
-    return (
-      <div className="transaction-error" role="alert">
-        <b>{label}</b>
-        <br />
-        {error}
-      </div>
-    );
-  if (!stage) return null;
+  if (!stage && !error) return null;
   return (
-    <div className="transaction-status" role="status">
-      <b>
-        {pending ? "◌ " : "✓ "}
-        {label}
-      </b>
-      <br />
-      {stage}
-      {hash && (
-        <>
-          <br />
-          <a href={explorer(hash)} target="_blank" rel="noreferrer">
-            {short(hash)} — view receipt ↗
-          </a>
-        </>
+    <Alert className="transaction-status" role={error ? "alert" : "status"}>
+      {error ? (
+        <CircleAlert />
+      ) : pending ? (
+        <LoaderCircle className="animate-spin" />
+      ) : (
+        <Check />
       )}
-    </div>
+      <AlertTitle>{label}</AlertTitle>
+      <AlertDescription>
+        {error || stage}
+        {hash && (
+          <a href={explorer(hash)} target="_blank" rel="noreferrer">
+            {short(hash)} · View receipt ↗
+          </a>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 }
 export function AmountField({
@@ -154,9 +152,9 @@ export function AmountField({
   return (
     <div className="form-field">
       <label>
-        {label}
-        <div className="input-wrap" style={{ marginTop: 9 }}>
-          <input
+        <span>{label}</span>
+        <div className="input-wrap">
+          <Input
             aria-label={label}
             inputMode="decimal"
             value={value}
@@ -173,17 +171,15 @@ export function AmountField({
 export function LoanStatus({ loan, at }: { loan: LoanRecord; at: bigint }) {
   const overdue = loan.status === 1 && at > loan.dueAt;
   return (
-    <span
-      className={`badge ${overdue || loan.status === 2 ? "danger" : loan.status === 3 ? "muted" : ""}`}
-    >
+    <Badge variant={overdue || loan.status === 2 ? "default" : "secondary"}>
       {loan.status === 2
-        ? "WRITTEN OFF"
+        ? "Written off"
         : loan.status === 3
-          ? "SETTLED"
+          ? "Settled"
           : overdue
-            ? "OVERDUE"
-            : "ACTIVE"}
-    </span>
+            ? "Overdue"
+            : "Active"}
+    </Badge>
   );
 }
 export function LoanTable({
@@ -197,56 +193,56 @@ export function LoanTable({
 }) {
   if (!loans)
     return <div className="empty">Loading confirmed loan records…</div>;
-  return loans.length ? (
-    <div className="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Loan / batch</th>
-            <th>Principal</th>
-            <th>Interest</th>
-            <th>Due</th>
-            <th>Status</th>
-            {onSelect && <th />}
-          </tr>
-        </thead>
-        <tbody>
-          {loans.map((loan) => (
-            <tr key={String(loan.id)}>
-              <td>
-                PF-{loan.id.toString().padStart(3, "0")}
-                <small title={loan.batchRef}>{short(loan.batchRef)}</small>
-              </td>
-              <td>
-                {money(loan.principalOutstanding)}
-                <small>{money(loan.originalPrincipal)} originated</small>
-              </td>
-              <td>{money(loan.interest, 6)}</td>
-              <td>{timestamp(loan.dueAt)}</td>
-              <td>
-                <LoanStatus loan={loan} at={at} />
-              </td>
-              {onSelect && (
-                <td>
-                  <button
-                    className="secondary-button"
-                    onClick={() => onSelect(loan)}
-                  >
-                    View →
-                  </button>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  ) : (
-    <div className="empty">
-      No loans originated yet.
-      <br />
-      Approved borrowers can draw from available pool liquidity.
-    </div>
+  if (!loans.length)
+    return <div className="empty">No loans originated yet.</div>;
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Loan / batch</TableHead>
+          <TableHead>Principal</TableHead>
+          <TableHead>Interest</TableHead>
+          <TableHead>Due · UTC</TableHead>
+          <TableHead>Status</TableHead>
+          {onSelect && (
+            <TableHead>
+              <span className="sr-only">Details</span>
+            </TableHead>
+          )}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {loans.map((loan) => (
+          <TableRow key={String(loan.id)}>
+            <TableCell>
+              PF-{loan.id.toString().padStart(3, "0")}
+              <small title={loan.batchRef}>{short(loan.batchRef)}</small>
+              <small title={loan.borrower}>{short(loan.borrower)}</small>
+            </TableCell>
+            <TableCell>
+              {alpha(loan.principalOutstanding)}
+              <small>{alpha(loan.originalPrincipal)} originated</small>
+            </TableCell>
+            <TableCell>{alpha(loan.interest, 6)}</TableCell>
+            <TableCell>{timestamp(loan.dueAt)}</TableCell>
+            <TableCell>
+              <LoanStatus loan={loan} at={at} />
+            </TableCell>
+            {onSelect && (
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSelect(loan)}
+                >
+                  Details <ArrowUpRight size={14} />
+                </Button>
+              </TableCell>
+            )}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 export function InterestTicker({
@@ -263,10 +259,8 @@ export function InterestTicker({
     return () => clearInterval(timer);
   }, [at]);
   const elapsed =
-    loan && loan.status === 1
-      ? at + BigInt(tick) > loan.lastAccruedAt
-        ? at + BigInt(tick) - loan.lastAccruedAt
-        : 0n
+    loan?.status === 1 && at + BigInt(tick) > loan.lastAccruedAt
+      ? at + BigInt(tick) - loan.lastAccruedAt
       : 0n;
   const interest = loan
     ? loan.status === 1
@@ -277,81 +271,81 @@ export function InterestTicker({
     : 0n;
   return (
     <div className="live-ticker">
-      <div>
-        <label>ELAPSED-TIME INTEREST · ESTIMATE BETWEEN BLOCKS</label>
-        <strong>{money(interest, 6)}</strong>
-      </div>
-      <small>
-        <span className="status-dot" />
-        18% simple APR
-      </small>
+      <span>Accrued interest · estimate between blocks</span>
+      <strong>{alpha(interest, 6)}</strong>
+      <small>18% simple APR · 4.93 bps/day</small>
     </div>
   );
 }
 export function ActivityList({
   events = [],
-  limit = 5,
+  limit = 6,
+  transfers = false,
 }: {
   events?: Activity[];
   limit?: number;
+  transfers?: boolean;
 }) {
   const meaningful = events
     .filter(
       (event) =>
-        !["Transfer", "Approval", "OwnershipTransferStarted"].includes(
-          event.eventName,
-        ),
+        ![
+          "Approval",
+          "OwnershipTransferStarted",
+          ...(!transfers ? ["Transfer"] : []),
+        ].includes(event.eventName),
     )
     .slice(-limit)
     .reverse();
   if (!meaningful.length)
-    return (
-      <div className="empty">Confirmed contract activity will appear here.</div>
-    );
+    return <div className="empty">No confirmed transactions to display.</div>;
   const names: Record<string, string> = {
-    Deposit: "Capital deposited",
+    Deposit: "Deposit",
+    Transfer: "Share transfer",
     LoanDrawn: "Credit drawn",
     LoanRepaid: "Loan repayment",
-    SettlementRepaid: "Settlement reconciled",
+    SettlementRepaid: "Settlement repayment",
     LoanWrittenOff: "Loss recognized",
     LoanRecovered: "Debt recovered",
-    RedemptionRequested: "Redemption queued",
-    RedemptionProcessed: "Investor paid",
-    RedemptionCancelled: "Redemption cancelled",
+    RedemptionRequested: "Withdrawal requested",
+    RedemptionProcessed: "Withdrawal paid",
+    RedemptionCancelled: "Withdrawal cancelled",
     BorrowerConfigured: "Borrower configured",
     PauseChanged: "Pool controls updated",
     OwnershipTransferred: "Manager assigned",
   };
   return (
-    <>
+    <div>
       {meaningful.map((event) => (
         <div
           className="activity-item"
           key={`${event.transactionHash}-${event.logIndex}`}
         >
-          <span className="activity-icon">
-            {event.eventName === "SettlementRepaid" ? "◎" : "↗"}
-          </span>
+          <ArrowRightLeft size={17} />
           <div>
-            {names[event.eventName] || event.eventName}
+            <b>{names[event.eventName] || event.eventName}</b>
             <small>
               Block {event.blockNumber.toString()} ·{" "}
               {short(event.transactionHash)}
+              {typeof event.args.assets === "bigint" &&
+                ` · ${alpha(event.args.assets, 6)}`}
+              {typeof event.args.value === "bigint" &&
+                ` · ${shares(event.args.value)} tPF`}
             </small>
           </div>
           <a
             href={explorer(event.transactionHash)}
             target="_blank"
             rel="noreferrer"
+            aria-label={`View ${names[event.eventName] || event.eventName} receipt`}
           >
-            Receipt ↗
+            Receipt <ArrowUpRight size={14} />
           </a>
         </div>
       ))}
-    </>
+    </div>
   );
 }
-
 export function QueryError({
   error,
   retry,
@@ -367,15 +361,15 @@ export function QueryError({
       ? String(error.shortMessage)
       : error.message.split("\n")[0];
   return (
-    <div className="transaction-error" role="alert">
-      Unable to load {label}: {message}
-      <button
-        className="secondary-button"
-        style={{ marginLeft: 12 }}
-        onClick={() => void retry()}
-      >
-        Retry
-      </button>
-    </div>
+    <Alert className="query-error">
+      <CircleAlert />
+      <AlertTitle>Unable to load {label}</AlertTitle>
+      <AlertDescription>
+        {message}
+        <Button variant="outline" size="sm" onClick={() => void retry()}>
+          Retry
+        </Button>
+      </AlertDescription>
+    </Alert>
   );
 }

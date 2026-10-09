@@ -3,7 +3,7 @@ export function money(value?: bigint, precision = 2) {
   if (value === undefined) return "—";
   const [integer, fraction = ""] = formatUnits(value, 6).split(".");
   const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `$${grouped}${precision ? `.${fraction.padEnd(precision, "0").slice(0, precision)}` : ""}`;
+  return `${grouped}${precision ? `.${fraction.padEnd(precision, "0").slice(0, precision)}` : ""}`;
 }
 export function shares(value?: bigint, precision = 4) {
   if (value === undefined) return "—";
@@ -33,8 +33,10 @@ export function timestamp(value: bigint) {
   return new Date(Number(value) * 1000).toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
+    timeZone: "UTC",
     hour: "2-digit",
     minute: "2-digit",
+    timeZoneName: "short",
   });
 }
 export function projectedInterest(principal: bigint, seconds: bigint) {
@@ -44,4 +46,8 @@ export function utilization(principal?: bigint, nav?: bigint) {
   return nav && principal !== undefined
     ? `${(Number((principal * 10_000n) / nav) / 100).toFixed(1)}%`
     : "0.0%";
+}
+
+export function alpha(value?: bigint, precision = 2) {
+  return `${money(value, precision)} AlphaUSD`;
 }

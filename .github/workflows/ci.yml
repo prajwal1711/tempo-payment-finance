@@ -19,5 +19,6 @@ jobs:
         with:
           version: v1.8.5
       - run: pnpm contracts:test
+      - run: pnpm test:ui
       - run: pnpm typecheck
       - run: pnpm build

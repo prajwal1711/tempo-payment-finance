@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspace } from "@/components/workspace-context";
 import { useState, useRef } from "react";
 import {
   useQuery,
@@ -30,7 +31,7 @@ import type {
 } from "./types";
 
 // One shared chain reference anchors every financial query on a screen.
-function useSnapshotBlock(poll = false) {
+export function useSnapshotBlock(poll = false) {
   return useQuery({
     queryKey: ["snapshot-block", deployment.chainId],
     refetchInterval: poll ? 5_000 : false,
@@ -165,15 +166,17 @@ export function useLoans() {
   });
 }
 
-export function useBorrower(address: Address) {
+export function useBorrower(address?: Address) {
   const block = useSnapshotBlock().data;
   return useQuery({
     queryKey: ["borrower", vaultAddress, address, block?.number.toString()],
     placeholderData: (previous, previousQuery) =>
       previousQuery?.queryKey[2] === address ? previous : undefined,
-    enabled: deployment.deployed && !!block,
+    enabled: deployment.deployed && !!block && !!address,
     queryFn: async () => {
       if (!block) throw new Error("Waiting for the snapshot block.");
+      if (!address)
+        throw new Error("Connect a wallet to view its credit line.");
       const [borrower, available, credit] = await Promise.all([
         readVault("getBorrower", [address], block.number),
         readVault("availableToDraw", [address], block.number),
@@ -190,15 +193,16 @@ export function useBorrower(address: Address) {
   });
 }
 
-export function usePosition(address: Address) {
+export function usePosition(address?: Address) {
   const block = useSnapshotBlock().data;
   return useQuery({
     queryKey: ["position", vaultAddress, address, block?.number.toString()],
     placeholderData: (previous, previousQuery) =>
       previousQuery?.queryKey[2] === address ? previous : undefined,
-    enabled: deployment.deployed && !!block,
+    enabled: deployment.deployed && !!block && !!address,
     queryFn: async () => {
       if (!block) throw new Error("Waiting for the snapshot block.");
+      if (!address) throw new Error("Connect a wallet to view its position.");
       const [assets, fees, ownedShares, pendingId] = await Promise.all([
         publicClient.readContract({
           address: assetAddress,
@@ -236,7 +240,14 @@ export function usePosition(address: Address) {
             block.number,
           )) as bigint)
         : 0n;
+      const positionValue = (await readVault(
+        "previewRedeem",
+        [(ownedShares as bigint) + (pending?.shares || 0n)],
+        block.number,
+      )) as bigint;
       return {
+        positionValue,
+        blockNumber: block.number,
         assets,
         fees,
         ownedShares: ownedShares as bigint,
@@ -322,7 +333,10 @@ export function approveCall(amount: bigint): Call {
   };
 }
 export function useTransaction() {
+  const { demo } = useWorkspace();
   const account = useAccount();
+  const currentDemo = useRef(demo);
+  currentDemo.current = demo;
   const currentAccount = useRef(account);
   currentAccount.current = account;
   const inFlight = useRef(false);
@@ -343,6 +357,10 @@ export function useTransaction() {
     inFlight.current = true;
     setState({ pending: true, label, stage: "Preparing transaction" });
     try {
+      if (demo)
+        throw new Error(
+          "Demo exploration is read-only. Exit demo mode to transact.",
+        );
       if (!account.address || !wallet.data)
         throw new Error("Connect your Tempo Wallet to continue.");
       if (account.chainId !== 42431)
@@ -379,6 +397,7 @@ export function useTransaction() {
       if (failed?.status === "failure") throw failed.error;
       const freshAddresses = await wallet.data.getAddresses();
       if (
+        currentDemo.current ||
         currentAccount.current.address?.toLowerCase() !==
           signer.toLowerCase() ||
         currentAccount.current.chainId !== 42431 ||
@@ -440,7 +459,7 @@ export function useTransaction() {
   return {
     ...state,
     run,
-    connected: account.isConnected && account.chainId === 42431,
+    connected: !demo && account.isConnected && account.chainId === 42431,
     address: account.address,
   };
 }

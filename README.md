@@ -17,13 +17,30 @@ pnpm dev
 
 Open http://127.0.0.1:3000. Public reads work without a wallet; the checked-in deployment is already funded. Connect Tempo Wallet for signing. Use its testnet faucet to obtain AlphaUSD and PathUSD (fees).
 
-| Route | Purpose |
-|---|---|
-| `/` | Live pool balance sheet, credit ledger, receipts |
-| `/invest` | Deposit, transfer shares, queue/cancel exits, process FIFO |
-| `/borrow` | Approved credit, draw, partial/full repayment |
-| `/manage` | Borrower approval, pauses, overdue write-off, ownership handover |
-| `/settlement` | Simulated evidence and atomic borrower/batch-linked repayment |
+| Workspace | Routes | Purpose |
+|---|---|---|
+| Public tPF pool | `/` | Value per share, total assets across all investors, public loans and repayments |
+| Investor | `/portfolio`, `/portfolio/withdrawals`, `/portfolio/activity` | Own held + queued position, deposits, share transfers, FIFO requests and history |
+| Borrower | `/borrower`, `/borrower/loans`, `/borrower/settlements` | Connected borrower’s facility, debt servicing and simulated settlement records |
+| Manager | `/manager`, `/manager/borrowers`, `/manager/loans`, `/manager/redemptions`, `/manager/settings` | Pool monitoring, borrower configuration, loss recognition, queue and ownership |
+
+The workspace selector exposes eligible roles based on current contract state. Disabled configured borrowers retain loan-servicing access; pending owners can accept ownership in Settings. Public loan details allow any connected payer to repay or apply a borrower/batch-linked settlement payment.
+
+**Explore demo** explicitly opens real demo-account data with a persistent read-only banner. It never substitutes demo balances for a connected wallet’s own holdings, and its transaction handler rejects mutations. Old `/invest`, `/borrow`, `/manage` and `/settlement` links redirect in the client, including under the GitHub Pages base path.
+
+### UI and historical charts
+
+The neutral black-and-white UI uses actual shadcn/ui Radix components and Recharts 3. The portfolio chart measures held plus queued shares at historical blocks. The pool chart separates value per tPF from aggregate pool assets, so capital inflows are not displayed as investment returns.
+
+History uses real archive reads from deployment: hourly for 1D, six-hourly for 7D, and daily/adaptive sampling for All (at most 64 regular samples). Financial event blocks and their preceding blocks preserve deposits, payouts, losses, recoveries and escrow transitions. Chart math and tooltips retain bigint amounts; numbers are used only for drawing coordinates. Individual archive requests share a four-request limit and normal in-memory caching; the live endpoint follows the five-second common snapshot. Archive failures show gaps and a Retry action. Charts use UTC and never insert future or fixture values.
+
+```sh
+pnpm test:ui             # Pure formatting, sampling, escrow and workspace tests
+pnpm verify:history      # Read-only checks against the existing deployed vault
+GITHUB_PAGES=true pnpm build
+```
+
+`verify:history` checks the staged demo’s historical write-off, recovery, queued ownership and latest NAV. It sends no signed transactions and uses no private keys. The initial history load can take approximately 20–30 seconds while archive snapshots are read; later chart visits reuse memory caches.
 
 ## Deployed contract
 
@@ -79,13 +96,13 @@ Read the public address from your connected Tempo Wallet. With local testnet dep
 pnpm manage nominate 0xYOUR_MANAGER_WALLET
 ```
 
-Then accept ownership on `/manage` from that wallet. The old manager retains authority until acceptance. The new manager can approve your borrower wallet in the UI. Alternatively, before handover:
+Then accept ownership on `/manager/settings` from that wallet. The old manager retains authority until acceptance. The new manager can approve your borrower wallet in the UI. Alternatively, before handover:
 
 ```sh
 pnpm manage approve 0xYOUR_BORROWER_WALLET 750 48
 ```
 
-Repay the staged loan from any funded wallet on `/settlement` before demonstrating a new 600 AlphaUSD draw. The existing 750 AlphaUSD limit and 10% cash reserve still apply. Anyone can invest and anyone can repay; only approved borrowers can draw.
+Repay the staged loan from any funded wallet through public loan details on `/` before demonstrating a new 600 AlphaUSD draw. The existing 750 AlphaUSD limit and 10% cash reserve still apply. Anyone can invest and anyone can repay; only approved borrowers can draw.
 
 ## Accounting and demo material
 
@@ -96,3 +113,5 @@ Repay the staged loan from any funded wallet on `/settlement` before demonstrati
 - [Implementation plan](PLAN.md)
 
 Borrower pricing is **18% APR / 4.93 bps/day**, not investor APY. Share value reflects utilization, earnings, losses, and recoveries. All exits use a custom FIFO queue; this implementation does not claim ERC-7540 compliance.
+
+`pnpm verify:batches` performs read-only native-batch simulations for deposit, partial/full repayment, and settlement repayment against the existing vault. It confirms actual principal is unchanged afterward. Wallet authorization and receipt handling continue through the original transaction hook; a full newly signed wallet rehearsal is a separate manual check.
