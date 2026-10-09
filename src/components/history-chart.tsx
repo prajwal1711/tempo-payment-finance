@@ -13,24 +13,43 @@ import { QueryError } from "./ui";
 export function HistoryChart({
   personal = false,
   address,
+  composition = false,
 }: {
   personal?: boolean;
   address?: Address;
+  composition?: boolean;
 }) {
   const [range, setRange] = useState<HistoryRange>("All");
-  const [metric, setMetric] = useState<"sharePrice" | "nav">("sharePrice");
+  const [metric, setMetric] = useState<"sharePrice" | "nav" | "composition">(
+    "sharePrice",
+  );
   const history = useHistory(range, address, personal);
-  const field = personal ? "positionValue" : metric;
+  const field = personal
+    ? "positionValue"
+    : metric === "composition"
+      ? "nav"
+      : metric;
+  const stacked = !personal && metric === "composition";
   const title = personal
     ? "Position value"
     : metric === "sharePrice"
       ? "Value per tPF"
-      : "Total pool assets";
+      : stacked
+        ? "Pool asset composition"
+        : "Total pool assets";
   const data = history.data?.map((point) => ({
     time: Number(point.timestamp),
     block: point.blockNumber.toString(),
     raw: point[field],
     value: point[field] == null ? null : Number(formatUnits(point[field]!, 6)),
+    cashRaw: point.cash,
+    principalRaw: point.principal,
+    interestRaw: point.interest,
+    cash: point.cash == null ? null : Number(formatUnits(point.cash, 6)),
+    principal:
+      point.principal == null ? null : Number(formatUnits(point.principal, 6)),
+    interest:
+      point.interest == null ? null : Number(formatUnits(point.interest, 6)),
   }));
   const intraday =
     !!data?.length && data[data.length - 1].time - data[0].time < 86400;
@@ -52,6 +71,9 @@ export function HistoryChart({
             <TabsList>
               <TabsTrigger value="sharePrice">Value per tPF</TabsTrigger>
               <TabsTrigger value="nav">Total pool assets</TabsTrigger>
+              {composition && (
+                <TabsTrigger value="composition">Asset composition</TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         )}
@@ -71,6 +93,22 @@ export function HistoryChart({
         label="historical data"
         retry={history.retry}
       />
+      {stacked && (
+        <div className="chart-legend" aria-label="Asset composition legend">
+          <span>
+            <i style={{ background: "#18181b" }} />
+            Cash
+          </span>
+          <span>
+            <i style={{ background: "#a1a1aa" }} />
+            Loan principal
+          </span>
+          <span>
+            <i style={{ background: "#e4e4e7" }} />
+            Accrued interest
+          </span>
+        </div>
+      )}
       {!data ? (
         <div className="chart-loading">
           {history.error ? (
@@ -96,7 +134,12 @@ export function HistoryChart({
         </div>
       ) : (
         <ChartContainer
-          config={{ value: { label: title, color: "#18181b" } }}
+          config={{
+            value: { label: title, color: "#18181b" },
+            cash: { label: "Cash", color: "#18181b" },
+            principal: { label: "Loan principal", color: "#a1a1aa" },
+            interest: { label: "Accrued interest", color: "#e4e4e7" },
+          }}
           className="history-plot"
           aria-label={`${title} history in AlphaUSD, UTC`}
         >
@@ -154,23 +197,55 @@ export function HistoryChart({
                 return (
                   <div className="chart-tooltip">
                     <b>{alpha(point.raw ?? undefined, 6)}</b>
+                    {stacked && (
+                      <>
+                        <span>
+                          Cash: {alpha(point.cashRaw ?? undefined, 6)}
+                        </span>
+                        <span>
+                          Loan principal:{" "}
+                          {alpha(point.principalRaw ?? undefined, 6)}
+                        </span>
+                        <span>
+                          Accrued interest:{" "}
+                          {alpha(point.interestRaw ?? undefined, 6)}
+                        </span>
+                      </>
+                    )}
                     <span>{timestamp(BigInt(point.time))}</span>
                     <span>Block {point.block}</span>
                   </div>
                 );
               }}
             />
-            <Area
-              dataKey="value"
-              type="linear"
-              stroke="var(--color-value)"
-              strokeWidth={2}
-              fill="#18181b"
-              fillOpacity={0.045}
-              connectNulls={false}
-              isAnimationActive={false}
-              dot={valid.length < 3 ? { r: 4, fill: "#18181b" } : false}
-            />
+            {stacked ? (
+              ["cash", "principal", "interest"].map((key) => (
+                <Area
+                  key={key}
+                  dataKey={key}
+                  stackId="assets"
+                  type="linear"
+                  stroke={`var(--color-${key})`}
+                  fill={`var(--color-${key})`}
+                  fillOpacity={0.85}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                  dot={valid.length < 3 ? { r: 3 } : false}
+                />
+              ))
+            ) : (
+              <Area
+                dataKey="value"
+                type="linear"
+                stroke="var(--color-value)"
+                strokeWidth={2}
+                fill="#18181b"
+                fillOpacity={0.045}
+                connectNulls={false}
+                isAnimationActive={false}
+                dot={valid.length < 3 ? { r: 4, fill: "#18181b" } : false}
+              />
+            )}
           </AreaChart>
         </ChartContainer>
       )}
@@ -181,7 +256,9 @@ export function HistoryChart({
             ? " · Includes deposits, withdrawals, transfers and valuation changes"
             : metric === "sharePrice"
               ? " · Earnings and recognized losses per share"
-              : " · All investors combined"}
+              : stacked
+                ? " · Cash + active principal + accrued interest"
+                : " · All investors combined"}
         </span>
         {history.hasGaps && (
           <Button
@@ -202,7 +279,14 @@ export function HistoryChart({
                 <tr>
                   <th>Time · UTC</th>
                   <th>Block</th>
-                  <th>{title}</th>
+                  <th>{stacked ? "Total pool assets" : title}</th>
+                  {stacked && (
+                    <>
+                      <th>Cash</th>
+                      <th>Loan principal</th>
+                      <th>Accrued interest</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -213,6 +297,25 @@ export function HistoryChart({
                     <td>
                       {point.raw == null ? "Unavailable" : alpha(point.raw, 6)}
                     </td>
+                    {stacked && (
+                      <>
+                        <td>
+                          {point.cashRaw == null
+                            ? "Unavailable"
+                            : alpha(point.cashRaw, 6)}
+                        </td>
+                        <td>
+                          {point.principalRaw == null
+                            ? "Unavailable"
+                            : alpha(point.principalRaw, 6)}
+                        </td>
+                        <td>
+                          {point.interestRaw == null
+                            ? "Unavailable"
+                            : alpha(point.interestRaw, 6)}
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

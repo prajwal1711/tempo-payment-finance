@@ -11,6 +11,8 @@ import {
   encodeFunctionData,
   erc20Abi,
   parseEventLogs,
+  createPublicClient,
+  http,
   type Abi,
   type Address,
   type Hash,
@@ -83,6 +85,16 @@ export function usePool() {
 // This is only an in-memory cursor. A page reload reconstructs events from deployment.
 let activityCursor: bigint | undefined;
 let activityEvents: Activity[] = [];
+// The testnet intermittently rejects getLogs ranges inside JSON-RPC batches.
+// Event queries retain four workers but use individually retried requests.
+const eventClient = createPublicClient({
+  chain: publicClient.chain,
+  transport: http(deployment.rpcUrl, {
+    batch: false,
+    timeout: 20_000,
+    retryCount: 2,
+  }),
+});
 export function useActivity() {
   return useQuery({
     queryKey: ["activity", vaultAddress],
@@ -113,10 +125,28 @@ export function useActivity() {
       async function worker() {
         while (cursor < ranges.length) {
           const index = cursor++;
-          chunks[index] = await publicClient.getLogs({
-            address: vaultAddress,
-            ...ranges[index],
-          });
+          for (let attempt = 0; ; attempt++) {
+            try {
+              chunks[index] = await eventClient.getLogs({
+                address: vaultAddress,
+                ...ranges[index],
+              });
+              break;
+            } catch (error) {
+              if (
+                !(error instanceof Error) ||
+                !error.message.includes("rate limited") ||
+                attempt >= 4
+              )
+                throw error;
+              await new Promise((resolve) =>
+                setTimeout(resolve, Math.min(300 * 2 ** attempt, 2_000)),
+              );
+            }
+          }
+          // Pace each worker so empty ranges do not burst through the RPC quota.
+          if (cursor < ranges.length)
+            await new Promise((resolve) => setTimeout(resolve, 300));
         }
       }
       await Promise.all(

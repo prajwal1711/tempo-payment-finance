@@ -26,3 +26,11 @@ Archive requests in JSON-RPC batches initially produced intermittent unknown-RPC
 ## Remaining verification limits
 
 New wallet signatures were not requested during this redesign. Live native batches were simulated read-only; signing and receipt handling use the preserved wallet transaction path. Newly signed end-to-end wallet rehearsal remains a manual check. Historical availability depends on the public RPC and failures are shown as gaps.
+
+## Selective transparency-dashboard additions
+
+The public tPF page now uses compact headline metrics, an asset allocation bar with precise cash/principal/interest amounts, a withdrawal liquidity summary, historical asset composition, and cumulative lending activity. These borrow the useful information relationships from the Accountable dashboard while retaining the neutral visual system and existing workspaces.
+
+Principal repayments are summed from `LoanRepaid` only; the additional recovery event is not counted again. Queue estimates remain variable, and the status distinguishes an overdue block from insufficient cash at the FIFO head. No collateralization or independent-verification claim is introduced.
+
+Browser review showed 1,850 AlphaUSD originated across four loans, 1,250 AlphaUSD of principal repaid, one active 600 AlphaUSD loan, and no pending withdrawals. TypeScript, normal production build, and GitHub Pages export completed successfully. Event history now uses individual RPC requests, paced workers and bounded rate-limit retries after the actual endpoint rejected bursts of range queries.
