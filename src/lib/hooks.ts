@@ -80,6 +80,9 @@ export function usePool() {
   };
 }
 
+// This is only an in-memory cursor. A page reload reconstructs events from deployment.
+let activityCursor: bigint | undefined;
+let activityEvents: Activity[] = [];
 export function useActivity() {
   return useQuery({
     queryKey: ["activity", vaultAddress],
@@ -87,35 +90,62 @@ export function useActivity() {
     queryFn: async () => {
       if (!deployment.deployed) return [] as Activity[];
       const to = await publicClient.getBlockNumber({ cacheTime: 0 });
-      const logs = [];
-      for (
-        let from = BigInt(deployment.deploymentBlock);
-        from <= to;
-        from += 5_000n
-      ) {
-        logs.push(
-          ...(await publicClient.getLogs({
+      const deployed = BigInt(deployment.deploymentBlock);
+      const previous =
+        activityCursor !== undefined && activityCursor < to
+          ? activityCursor
+          : to;
+      const start =
+        activityCursor === undefined
+          ? deployed
+          : previous - 10n > deployed
+            ? previous - 10n
+            : deployed;
+      const ranges: { fromBlock: bigint; toBlock: bigint }[] = [];
+      for (let from = start; from <= to; from += 5_000n)
+        ranges.push({
+          fromBlock: from,
+          toBlock: from + 4_999n < to ? from + 4_999n : to,
+        });
+      const chunks: Awaited<ReturnType<typeof publicClient.getLogs>>[] =
+        new Array(ranges.length);
+      let cursor = 0;
+      async function worker() {
+        while (cursor < ranges.length) {
+          const index = cursor++;
+          chunks[index] = await publicClient.getLogs({
             address: vaultAddress,
-            fromBlock: from,
-            toBlock: from + 4_999n < to ? from + 4_999n : to,
-          })),
-        );
+            ...ranges[index],
+          });
+        }
       }
-      return parseEventLogs({ abi: vaultAbi as Abi, logs, strict: false })
-        .map((log) => ({
-          eventName: log.eventName,
-          args: log.args as Record<string, unknown>,
-          transactionHash: log.transactionHash!,
-          blockNumber: log.blockNumber!,
-          logIndex: log.logIndex!,
-        }))
-        .sort((a, b) =>
-          a.blockNumber === b.blockNumber
-            ? a.logIndex - b.logIndex
-            : a.blockNumber < b.blockNumber
-              ? -1
-              : 1,
-        ) as Activity[];
+      await Promise.all(
+        Array.from({ length: Math.min(4, ranges.length) }, worker),
+      );
+      const incoming = parseEventLogs({
+        abi: vaultAbi as Abi,
+        logs: chunks.flat(),
+        strict: false,
+      }).map((log) => ({
+        eventName: log.eventName,
+        args: log.args as Record<string, unknown>,
+        transactionHash: log.transactionHash!,
+        blockNumber: log.blockNumber!,
+        logIndex: log.logIndex!,
+      })) as Activity[];
+      // Re-read the recent tail to replace, rather than duplicate, any changed blocks.
+      activityEvents = [
+        ...activityEvents.filter((event) => event.blockNumber < start),
+        ...incoming,
+      ].sort((a, b) =>
+        a.blockNumber === b.blockNumber
+          ? a.logIndex - b.logIndex
+          : a.blockNumber < b.blockNumber
+            ? -1
+            : 1,
+      );
+      activityCursor = to;
+      return activityEvents;
     },
   });
 }
