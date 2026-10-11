@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usePool } from "@/lib/hooks";
+import { usePool, useLoans } from "@/lib/hooks";
+import { companyName } from "@/lib/company";
 import { explorer } from "@/lib/chain";
 import { alpha, shares, short, timestamp } from "@/lib/format";
 import type { Activity, LoanRecord } from "@/lib/types";
@@ -23,6 +24,7 @@ import {
   LoaderCircle,
   Check,
   ArrowRightLeft,
+  Clock3,
 } from "lucide-react";
 export function PageHeader({
   title,
@@ -170,8 +172,21 @@ export function AmountField({
 }
 export function LoanStatus({ loan, at }: { loan: LoanRecord; at: bigint }) {
   const overdue = loan.status === 1 && at > loan.dueAt;
+  const tone =
+    overdue || loan.status === 2
+      ? "danger"
+      : loan.status === 3
+        ? "success"
+        : "info";
+  const Icon =
+    overdue || loan.status === 2
+      ? CircleAlert
+      : loan.status === 3
+        ? Check
+        : Clock3;
   return (
-    <Badge variant={overdue || loan.status === 2 ? "default" : "secondary"}>
+    <Badge variant="secondary" className={`status-badge status-${tone}`}>
+      <Icon size={12} />
       {loan.status === 2
         ? "Written off"
         : loan.status === 3
@@ -199,7 +214,7 @@ export function LoanTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Loan / batch</TableHead>
+          <TableHead>Company / loan</TableHead>
           <TableHead>Principal</TableHead>
           <TableHead>Interest</TableHead>
           <TableHead>Due · UTC</TableHead>
@@ -215,9 +230,8 @@ export function LoanTable({
         {loans.map((loan) => (
           <TableRow key={String(loan.id)}>
             <TableCell>
-              PF-{loan.id.toString().padStart(3, "0")}
-              <small title={loan.batchRef}>{short(loan.batchRef)}</small>
-              <small title={loan.borrower}>{short(loan.borrower)}</small>
+              <b className="company-table-name">{companyName(loan.borrower)}</b>
+              <small>Loan PF-{loan.id.toString().padStart(3, "0")}</small>
             </TableCell>
             <TableCell>
               {alpha(loan.principalOutstanding)}
@@ -286,6 +300,7 @@ export function ActivityList({
   limit?: number;
   transfers?: boolean;
 }) {
+  const loans = useLoans();
   const meaningful = events
     .filter(
       (event) =>
@@ -323,12 +338,26 @@ export function ActivityList({
         >
           <ArrowRightLeft size={17} />
           <div>
-            <b>{names[event.eventName] || event.eventName}</b>
+            <b>
+              {names[event.eventName] || event.eventName}
+              {(() => {
+                const address =
+                  typeof event.args.borrower === "string"
+                    ? event.args.borrower
+                    : loans.data?.loans.find(
+                        (loan) => loan.id === event.args.loanId,
+                      )?.borrower;
+                return address ? ` · ${companyName(address)}` : "";
+              })()}
+            </b>
             <small>
               Block {event.blockNumber.toString()} ·{" "}
               {short(event.transactionHash)}
               {typeof event.args.assets === "bigint" &&
                 ` · ${alpha(event.args.assets, 6)}`}
+              {event.eventName === "LoanDrawn" &&
+                typeof event.args.principal === "bigint" &&
+                ` · ${alpha(event.args.principal)} borrowed`}
               {typeof event.args.value === "bigint" &&
                 ` · ${shares(event.args.value)} tPF`}
             </small>

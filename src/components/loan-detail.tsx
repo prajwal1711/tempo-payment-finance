@@ -1,4 +1,5 @@
 "use client";
+import { companyName } from "@/lib/company";
 import { useEffect, useState } from "react";
 import { type LoanRecord } from "@/lib/types";
 import { approveCall, useLoans, useTransaction, vaultCall } from "@/lib/hooks";
@@ -64,7 +65,11 @@ export function LoanDetail({
         if (!open && !tx.pending) onClose();
       }}
       title={`Loan PF-${loan?.id.toString().padStart(3, "0") || ""}`}
-      description="Review the matching borrower and settlement batch. Any consenting wallet can repay this debt."
+      description={
+        loan
+          ? `Working-capital loan to ${companyName(loan.borrower)}. You can repay from the borrower’s wallet or a separate settlement wallet.`
+          : "Review the company’s working-capital loan."
+      }
     >
       {loan && (
         <>
@@ -74,24 +79,36 @@ export function LoanDetail({
           </div>
           <div className="ledger-row">
             <span>Borrower</span>
-            <b className="address break-all">{loan.borrower}</b>
+            <b>{companyName(loan.borrower)}</b>
           </div>
           <div className="ledger-row">
             <span>Principal remaining</span>
             <b>{alpha(loan.principalOutstanding, 6)}</b>
           </div>
           <div className="ledger-row">
-            <span>Due · UTC</span>
+            <span>Repayment due · UTC</span>
             <b>{timestamp(loan.dueAt)}</b>
           </div>
           <InterestTicker loan={loan} at={at} />
+          {loan.status === 1 && at > loan.dueAt && (
+            <p className="notice notice-danger">
+              {companyName(loan.borrower)} has overdue debt, blocking new draws.
+              Redemption processing resumes after repayment or write-off of all
+              overdue loans. Written-off debt requires recovery and manager
+              reapproval before borrowing can resume.
+            </p>
+          )}
           <div className="ledger-row">
             <span>Debt at current block</span>
             <b>{alpha(loan.debt, 6)}</b>
           </div>
           <div className="document">
-            <b>Batch reference / TIP-20 memo</b>
-            <p className="address break-all">{loan.batchRef}</p>
+            <details>
+              <summary>Company wallet and batch reference</summary>
+              <p className="address break-all">Borrower: {loan.borrower}</p>
+              <b>Batch reference / TIP-20 memo</b>
+              <p className="address break-all">{loan.batchRef}</p>
+            </details>
           </div>
           {loan.transactionHash && (
             <a

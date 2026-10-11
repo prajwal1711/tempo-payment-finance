@@ -2,7 +2,7 @@
 
 A working Tempo Moderato demonstration of unsecured revolving credit for a remittance company. Investors deposit AlphaUSD and receive transferable `tPF` shares. Approved borrowers finance settlement delays at 18% simple APR; a third-party settlement payer can repay the matching loan in one atomic transaction.
 
-**Testnet only.** Northstar Remit, its underwriting evidence, and its card-settlement provider are fictional fixtures. All deployed financial activity uses actual test tokens and actual block timestamps.
+**Testnet only.** Alpha Remit, its underwriting evidence, and its card-settlement provider are fictional fixtures. All deployed financial activity uses actual test tokens and actual block timestamps. Alpha Remit is a presentation alias for the existing demo borrower; the original Northstar Remit fixture and its on-chain diligence hash remain unchanged.
 
 **[Open the hosted demo](https://prajwal1711.github.io/tempo-payment-finance/) · [Source repository](https://github.com/prajwal1711/tempo-payment-finance)**
 
@@ -17,12 +17,12 @@ pnpm dev
 
 Open http://127.0.0.1:3000. Public reads work without a wallet; the checked-in deployment is already funded. Connect Tempo Wallet for signing. Use its testnet faucet to obtain AlphaUSD and PathUSD (fees).
 
-| Workspace | Routes | Purpose |
-|---|---|---|
-| Public tPF pool | `/` | Value per share, total assets across all investors, public loans and repayments |
-| Investor | `/portfolio`, `/portfolio/withdrawals`, `/portfolio/activity` | Own held + queued position, deposits, share transfers, FIFO requests and history |
-| Borrower | `/borrower`, `/borrower/loans`, `/borrower/settlements` | Connected borrower’s facility, debt servicing and simulated settlement records |
-| Manager | `/manager`, `/manager/borrowers`, `/manager/loans`, `/manager/redemptions`, `/manager/settings` | Pool monitoring, borrower configuration, loss recognition, queue and ownership |
+| Workspace       | Routes                                                                                          | Purpose                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Public tPF pool | `/`                                                                                             | Value per share, total assets across all investors, public loans and repayments  |
+| Investor        | `/portfolio`, `/portfolio/withdrawals`, `/portfolio/activity`                                   | Own held + queued position, deposits, share transfers, FIFO requests and history |
+| Borrower        | `/borrower`, `/borrower/loans`, `/borrower/settlements`                                         | Connected borrower’s facility, debt servicing and simulated settlement records   |
+| Manager         | `/manager`, `/manager/borrowers`, `/manager/loans`, `/manager/redemptions`, `/manager/settings` | Pool monitoring, borrower configuration, loss recognition, queue and ownership   |
 
 The workspace selector exposes eligible roles based on current contract state. Disabled configured borrowers retain loan-servicing access; pending owners can accept ownership in Settings. Public loan details allow any connected payer to repay or apply a borrower/batch-linked settlement payment.
 
@@ -30,7 +30,9 @@ The workspace selector exposes eligible roles based on current contract state. D
 
 ### UI and historical charts
 
-The neutral black-and-white UI uses actual shadcn/ui Radix components and Recharts 3. The portfolio chart measures held plus queued shares at historical blocks. The pool chart separates value per tPF from aggregate pool assets, so capital inflows are not displayed as investment returns.
+The UI uses actual shadcn/ui Radix components and Recharts 3, with navy text, blue actions, and consistent teal cash / indigo principal / amber interest colors. Financial terminology (NAV, principal, credit exposure, value per tPF) is retained with concise context. Alpha Remit’s simulated funding request sits alongside actual testnet loan state; company names appear throughout the credit ledger, receipts, borrower workspace, and manager views. Queue statuses identify overdue debt, earlier FIFO requests, and insufficient cash.
+
+The portfolio chart measures held plus queued shares at historical blocks. The pool chart separates value per tPF from aggregate pool assets, so capital inflows are not displayed as investment returns.
 
 History uses real archive reads from deployment: hourly for 1D, six-hourly for 7D, and daily/adaptive sampling for All (at most 64 regular samples). Financial event blocks and their preceding blocks preserve deposits, payouts, losses, recoveries and escrow transitions. Event scans run in chunks with at most four concurrent requests; subsequent refreshes re-read the recent tail using an in-memory cursor. Chart math and tooltips retain bigint amounts; numbers are used only for drawing coordinates. Individual archive requests share a four-request limit and normal in-memory caching; the live endpoint follows the five-second common snapshot. Archive failures show gaps and a Retry action. Charts use UTC and never insert future or fixture values.
 

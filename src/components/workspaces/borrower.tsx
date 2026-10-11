@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { companyName, isSampleCompany, sampleCompany } from "@/lib/company";
+import { CompanyStory } from "../company-story";
 import {
   useBorrower,
   useLoans,
@@ -79,12 +81,12 @@ export function BorrowerPage({
       <PageHeader
         title={
           view === "credit"
-            ? "Credit line"
+            ? `${companyName(borrowerAddress)}’s credit line`
             : view === "loans"
-              ? "Your loans"
+              ? `${companyName(borrowerAddress)}’s loans`
               : "Settlement batches"
         }
-        subtitle="Your approved working-capital facility for remittance prefunding."
+        subtitle="Revolving credit for remittance prefunding against expected settlement inflows."
         actions={
           view !== "settlements" ? (
             <Button
@@ -108,7 +110,14 @@ export function BorrowerPage({
       />
       {view === "credit" && (
         <>
-          <section className="position-hero">
+          {isSampleCompany(borrowerAddress) && (
+            <CompanyStory
+              loans={loans}
+              at={allLoans.data?.timestamp}
+              onSelect={selection.select}
+            />
+          )}
+          <section className="position-hero borrower-hero">
             <p>Available to draw</p>
             <h2>{alpha(b?.drawable, 6)}</h2>
             <span>
@@ -222,11 +231,20 @@ export function BorrowerPage({
                 ["Credit drawn", "Confirmed on-chain"],
                 [
                   "Settlement payment",
-                  confirmation ? "Confirmed on-chain" : "Not confirmed",
+                  confirmation
+                    ? "Payment received on-chain"
+                    : "No settlement payment recorded",
                 ],
                 [
                   "Loan repaid",
-                  loan.status === 3 ? "Confirmed on-chain" : "Outstanding",
+                  loan.status === 3
+                    ? "Repaid on-chain"
+                    : loan.status === 2
+                      ? "Written off · Recovery outstanding"
+                      : loan.status === 1 &&
+                          allLoans.data!.timestamp > loan.dueAt
+                        ? "Repayment overdue"
+                        : "Awaiting repayment",
                 ],
                 [
                   "Credit capacity",
@@ -240,7 +258,7 @@ export function BorrowerPage({
               return (
                 <Panel
                   key={String(loan.id)}
-                  title={`Batch · PF-${loan.id.toString().padStart(3, "0")}`}
+                  title={`${companyName(loan.borrower)} · Batch PF-${loan.id.toString().padStart(3, "0")}`}
                   className="section-space"
                   aside={
                     <Button
@@ -257,14 +275,14 @@ export function BorrowerPage({
                     </div>
                     <div className="ledger-row">
                       <span>Borrower</span>
-                      <b className="address break-all">{loan.borrower}</b>
+                      <b>{companyName(loan.borrower)}</b>
                     </div>
                     <div className="ledger-row">
                       <span>Settlement source · Simulated</span>
                       <b>
                         {known
                           ? fixture.settlementSource
-                          : "No record supplied"}
+                          : "No simulated record supplied"}
                       </b>
                     </div>
                     <div className="ledger-row">
@@ -304,7 +322,7 @@ export function BorrowerPage({
                       <details className="how-it-works">
                         <summary>Supporting document · Simulated</summary>
                         <p>
-                          {fixture.company} · {fixture.corridor}
+                          {sampleCompany.name} · {fixture.corridor}
                         </p>
                         <p className="address break-all">{diligenceHash}</p>
                       </details>
@@ -336,7 +354,7 @@ export function BorrowerPage({
         onOpenChange={(open) => {
           if (!tx.pending) setDrawOpen(open);
         }}
-        title="Draw credit"
+        title={`Draw credit · ${companyName(borrowerAddress)}`}
         description="Receive AlphaUSD in your approved borrower wallet. Each settlement batch reference can be used once."
       >
         <AmountField
@@ -354,7 +372,7 @@ export function BorrowerPage({
           />
           <small>
             Hashed consistently into the loan identifier and TIP-20 transfer
-            memo.
+            memo. Use a new reference for each draw.
           </small>
         </div>
         <div className="form-field">

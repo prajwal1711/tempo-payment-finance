@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { OverdueNotice, WithdrawalStatus } from "../company-story";
 import { useWorkspace } from "../workspace-context";
 import {
   useActivity,
@@ -111,6 +112,10 @@ export function InvestorPage({
                   depend on pool liquidity.
                 </small>
               </section>
+              <p className="ownership-explainer">
+                Position valuation includes held and escrowed tPF. Pending
+                redemptions remain exposed to pool NAV until processing.
+              </p>
               <HistoryChart personal address={investorAddress} />
               <div className="grid-two grid-equal section-space">
                 <Panel title="Your shares">
@@ -156,6 +161,12 @@ export function InvestorPage({
                           <span>Estimated payout · variable</span>
                           <b>{alpha(p?.queuedValue, 6)}</b>
                         </div>
+                        <WithdrawalStatus
+                          status={1}
+                          blocked={s?.hasOverdue}
+                          waitingCash={!!s && (p?.queuedValue || 0n) > s.cash}
+                          queuePosition={queuePosition}
+                        />
                         <p className="text-note">
                           {s?.hasOverdue
                             ? "Processing is blocked by an overdue active loan."
@@ -235,12 +246,7 @@ export function InvestorPage({
                   </div>
                 }
               >
-                {s?.hasOverdue && (
-                  <p className="notice">
-                    Processing is blocked while an active loan is overdue.
-                    Requests and cancellations remain available.
-                  </p>
-                )}
+                <OverdueNotice />
                 {requests?.length ? (
                   <Table>
                     <TableHeader>
@@ -288,15 +294,16 @@ export function InvestorPage({
                           </TableCell>
                           <TableCell>{timestamp(r.requestedAt)}</TableCell>
                           <TableCell>
-                            <Badge
-                              variant={r.status === 1 ? "default" : "secondary"}
-                            >
-                              {
-                                ["Unknown", "Pending", "Paid", "Cancelled"][
-                                  r.status
-                                ]
+                            <WithdrawalStatus
+                              status={r.status}
+                              blocked={s?.hasOverdue}
+                              waitingCash={!!s && r.estimatedAssets > s.cash}
+                              queuePosition={
+                                redemptions.data?.filter(
+                                  (x) => x.status === 1 && x.id <= r.id,
+                                ).length
                               }
-                            </Badge>
+                            />
                           </TableCell>
                         </TableRow>
                       ))}

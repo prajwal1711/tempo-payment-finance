@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePool, useBorrower } from "@/lib/hooks";
 import { useWorkspace, type Workspace } from "./workspace-context";
 import { short } from "@/lib/format";
+import { sampleCompany } from "@/lib/company";
 import { workspaceEligibility } from "@/lib/workspace";
 import deployment from "@/lib/deployment.json";
 const navigation = {
@@ -83,7 +84,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
       ? "borrower"
       : path.startsWith("/portfolio")
         ? "investor"
-        : chosen;
+        : !demo && !account.address
+          ? "investor"
+          : chosen;
   const permissions = workspaceEligibility(
     account.address,
     borrower.data?.borrower,
@@ -93,6 +96,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const manager = permissions.manager;
   const configured = permissions.borrower;
   const eligible =
+    path === "/" ||
     workspace === "investor" ||
     (workspace === "manager" ? manager : configured);
   useEffect(() => {
@@ -109,7 +113,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     workspace === "investor"
       ? `Demo Investor ${investor}`
       : workspace === "borrower"
-        ? "Demo Borrower"
+        ? sampleCompany.name
         : "Pool Manager";
   const demoAddress =
     workspace === "investor"
@@ -266,7 +270,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <div>
               <b>Viewing {demoLabel} · read-only</b>
               <span className="address">
-                {short(demoAddress)} · Real on-chain testnet data
+                {short(demoAddress)} · Actual testnet balances and transactions
               </span>
             </div>
             {workspace === "investor" && (
@@ -287,6 +291,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               variant="outline"
               onClick={() => {
                 setDemo(false);
+                setChosen("investor");
                 router.push(account.address ? "/portfolio" : "/");
               }}
             >

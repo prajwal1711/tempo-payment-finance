@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { companyName, sampleCompany } from "@/lib/company";
+import { OverdueNotice, WithdrawalStatus } from "../company-story";
 import { isAddress, formatUnits, type Address, zeroAddress } from "viem";
 import {
   useActivity,
@@ -65,10 +67,10 @@ function BorrowerRow({
   return (
     <TableRow>
       <TableCell>
-        <span title={address}>{short(address)}</span>
+        <b>{companyName(address)}</b>
         {address.toLowerCase() ===
           deployment.demoBorrowerAddress.toLowerCase() && (
-          <small>{fixture.company} · Simulated</small>
+          <small>{sampleCompany.name} · Simulated</small>
         )}
       </TableCell>
       <TableCell>{alpha(b?.borrower.config.creditLimit)}</TableCell>
@@ -214,6 +216,7 @@ export function ManagerPage({
       )}
       {view === "dashboard" && (
         <>
+          <OverdueNotice />
           <div className="metrics">
             <Metric
               label="Total pool assets"
@@ -274,7 +277,7 @@ export function ManagerPage({
                       ? "Loading"
                       : s.hasOverdue
                         ? "Blocked · Overdue loan"
-                        : "Open when liquid"}
+                        : "Can process when cash is available"}
                   </Badge>
                 </div>
                 <p className="text-note">
@@ -305,7 +308,7 @@ export function ManagerPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Borrower</TableHead>
+                  <TableHead>Company</TableHead>
                   <TableHead>Principal limit</TableHead>
                   <TableHead>Exposure</TableHead>
                   <TableHead>Drawable</TableHead>
@@ -352,7 +355,7 @@ export function ManagerPage({
                     <TableCell>
                       PF-{loan.id.toString().padStart(3, "0")}
                       <small title={loan.borrower}>
-                        {short(loan.borrower)}
+                        {companyName(loan.borrower)}
                       </small>
                     </TableCell>
                     <TableCell>
@@ -417,8 +420,8 @@ export function ManagerPage({
           />
           {s?.hasOverdue && (
             <p className="notice">
-              Processing is blocked by an active overdue loan. Repayment or
-              write-off clears the delinquency restriction.
+              An overdue company repayment blocks withdrawals. Repayment or
+              manager recognition of the loss clears the restriction.
             </p>
           )}
           {redemptions.data?.length ? (
@@ -463,9 +466,16 @@ export function ManagerPage({
                       </small>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={r.status === 1 ? "default" : "secondary"}>
-                        {["Unknown", "Pending", "Paid", "Cancelled"][r.status]}
-                      </Badge>
+                      <WithdrawalStatus
+                        status={r.status}
+                        blocked={s?.hasOverdue}
+                        waitingCash={!!s && r.estimatedAssets > s.cash}
+                        queuePosition={
+                          redemptions.data?.filter(
+                            (x) => x.status === 1 && x.id <= r.id,
+                          ).length
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -597,7 +607,11 @@ export function ManagerPage({
         onOpenChange={(open) => {
           if (!tx.pending) setConfigOpen(open);
         }}
-        title="Borrower credit decision"
+        title={
+          wallet
+            ? `${companyName(wallet)} · Credit decision`
+            : "Borrower credit decision"
+        }
         description="Set future draw permissions and limits. Existing debt and maturity remain unchanged."
       >
         <div className="form-field">
@@ -658,7 +672,7 @@ export function ManagerPage({
         <details className="how-it-works">
           <summary>Simulated underwriting fixture</summary>
           <p>
-            {fixture.company} · {fixture.corridor} · {fixture.business}
+            {sampleCompany.name} · {fixture.corridor} · {fixture.business}
           </p>
           <ul>
             {fixture.review.map((item) => (

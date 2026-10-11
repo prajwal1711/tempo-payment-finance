@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { usePool, useLoans, useActivity, useRedemptions } from "@/lib/hooks";
 import { alpha, utilization } from "@/lib/format";
 import deployment from "@/lib/deployment.json";
+import { companyName } from "@/lib/company";
+import { CompanyStory, OverdueNotice } from "@/components/company-story";
 import {
   ActivityList,
   LoanTable,
@@ -43,8 +45,8 @@ export default function PoolPage() {
     <>
       <div className="pool-dashboard">
         <PageHeader
-          title="Payment Finance Vault Share"
-          subtitle="tPF · Transferable ownership of a pool financing remittance settlement delays."
+          title="Payment Finance Vault Share · tPF"
+          subtitle="Unsecured working-capital credit for remittance settlement delays. Pool shares represent investor ownership."
           actions={<InvestorActions onlyDeposit />}
         />
         <div className="pool-data-source">
@@ -61,7 +63,7 @@ export default function PoolPage() {
           <Metric
             label="Value per tPF"
             value={alpha(pool.data?.sharePrice, 6)}
-            note="Estimated value of one whole tPF share"
+            note="NAV per whole tPF share · Denominated in AlphaUSD"
           />
           <Metric
             label="Total pool assets"
@@ -79,6 +81,38 @@ export default function PoolPage() {
             note="Active principal / total pool assets"
           />
         </div>
+        <p className="pool-explanation">
+          Value per tPF reflects pool NAV. Investor returns depend on
+          utilization, accrued interest, write-offs and recoveries.
+        </p>
+        <div className="money-summary">
+          <span className="summary-dot" />
+          <p>
+            {s ? (
+              <>
+                <b>{alpha(s.principal)}</b> principal outstanding with{" "}
+                {loans.data
+                  ? [
+                      ...new Set(
+                        loans.data.loans
+                          .filter((loan) => loan.status === 1)
+                          .map((loan) => companyName(loan.borrower)),
+                      ),
+                    ].join(", ") || "approved borrowers"
+                  : "approved companies"}
+                . <b>{alpha(s.cash)}</b> is available as pool cash.
+              </>
+            ) : (
+              "Loading pool allocation…"
+            )}
+          </p>
+        </div>
+        <CompanyStory
+          loans={loans.data?.loans}
+          at={loans.data?.timestamp}
+          onSelect={selected.select}
+        />
+        <OverdueNotice />
         <div className="grid-two grid-equal">
           <AssetComposition snapshot={s} />
           <WithdrawalLiquidity

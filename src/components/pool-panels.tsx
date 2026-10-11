@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { assetColors } from "@/lib/company";
+import { CircleAlert, Clock3, CircleCheck } from "lucide-react";
 import { alpha, shares, timestamp } from "@/lib/format";
 import type { Activity, LoanRecord, Redemption, Snapshot } from "@/lib/types";
 import { Metric, Panel, QueryError } from "./ui";
@@ -8,7 +10,7 @@ import { Button } from "./ui/button";
 
 function fraction(amount: bigint, total: bigint) {
   if (!total) return "0.00%";
-  const bps = (amount * 10_000n) / total;
+  const bps = (amount * 10_000n + total / 2n) / total;
   return amount && !bps ? "<0.01%" : `${(Number(bps) / 100).toFixed(2)}%`;
 }
 
@@ -17,19 +19,19 @@ export function AssetComposition({ snapshot }: { snapshot?: Snapshot }) {
     {
       label: "Available cash",
       amount: snapshot?.cash,
-      color: "#18181b",
+      color: assetColors.cash,
       note: "AlphaUSD held in the vault",
     },
     {
-      label: "Loan principal",
+      label: "Outstanding principal",
       amount: snapshot?.principal,
-      color: "#a1a1aa",
+      color: assetColors.principal,
       note: "Unsecured active receivables",
     },
     {
       label: "Accrued interest",
       amount: snapshot?.interest,
-      color: "#e4e4e7",
+      color: assetColors.interest,
       note: "Earned on active loans; not yet received",
     },
   ];
@@ -140,13 +142,29 @@ export function WithdrawalLiquidity({
         : !head
           ? "Reading queue"
           : head.estimatedAssets > snapshot.cash
-            ? "Waiting for liquidity"
-            : "Head request can be paid";
+            ? "Waiting for cash · Head request not funded"
+            : "Ready · Head request funded";
+  const waitingCash =
+    !!snapshot && !!head && head.estimatedAssets > snapshot.cash;
+  const tone = snapshot?.hasOverdue
+    ? "danger"
+    : waitingCash
+      ? "warning"
+      : !snapshot || (snapshot.pendingRequests > 0n && !head)
+        ? "neutral"
+        : "success";
   return (
     <Panel
       title="Withdrawal liquidity"
       aside={
-        <Badge variant={snapshot?.hasOverdue ? "default" : "secondary"}>
+        <Badge variant="secondary" className={`status-badge status-${tone}`}>
+          {snapshot?.hasOverdue ? (
+            <CircleAlert size={12} />
+          ) : tone === "warning" || tone === "neutral" ? (
+            <Clock3 size={12} />
+          ) : (
+            <CircleCheck size={12} />
+          )}
           {state}
         </Badge>
       }

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { assetColors } from "@/lib/company";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import { formatUnits, type Address } from "viem";
 import { useHistory } from "@/lib/history";
@@ -96,15 +97,15 @@ export function HistoryChart({
       {stacked && (
         <div className="chart-legend" aria-label="Asset composition legend">
           <span>
-            <i style={{ background: "#18181b" }} />
+            <i style={{ background: assetColors.cash }} />
             Cash
           </span>
           <span>
-            <i style={{ background: "#a1a1aa" }} />
-            Loan principal
+            <i style={{ background: assetColors.principal }} />
+            Outstanding principal
           </span>
           <span>
-            <i style={{ background: "#e4e4e7" }} />
+            <i style={{ background: assetColors.interest }} />
             Accrued interest
           </span>
         </div>
@@ -135,10 +136,16 @@ export function HistoryChart({
       ) : (
         <ChartContainer
           config={{
-            value: { label: title, color: "#18181b" },
-            cash: { label: "Cash", color: "#18181b" },
-            principal: { label: "Loan principal", color: "#a1a1aa" },
-            interest: { label: "Accrued interest", color: "#e4e4e7" },
+            value: { label: title, color: "#2563eb" },
+            cash: { label: "Cash", color: assetColors.cash },
+            principal: {
+              label: "Outstanding principal",
+              color: assetColors.principal,
+            },
+            interest: {
+              label: "Accrued interest",
+              color: assetColors.interest,
+            },
           }}
           className="history-plot"
           aria-label={`${title} history in AlphaUSD, UTC`}
@@ -203,7 +210,7 @@ export function HistoryChart({
                           Cash: {alpha(point.cashRaw ?? undefined, 6)}
                         </span>
                         <span>
-                          Loan principal:{" "}
+                          Outstanding principal:{" "}
                           {alpha(point.principalRaw ?? undefined, 6)}
                         </span>
                         <span>
@@ -239,11 +246,11 @@ export function HistoryChart({
                 type="linear"
                 stroke="var(--color-value)"
                 strokeWidth={2}
-                fill="#18181b"
+                fill="#2563eb"
                 fillOpacity={0.045}
                 connectNulls={false}
                 isAnimationActive={false}
-                dot={valid.length < 3 ? { r: 4, fill: "#18181b" } : false}
+                dot={valid.length < 3 ? { r: 4, fill: "#2563eb" } : false}
               />
             )}
           </AreaChart>
@@ -283,7 +290,7 @@ export function HistoryChart({
                   {stacked && (
                     <>
                       <th>Cash</th>
-                      <th>Loan principal</th>
+                      <th>Outstanding principal</th>
                       <th>Accrued interest</th>
                     </>
                   )}

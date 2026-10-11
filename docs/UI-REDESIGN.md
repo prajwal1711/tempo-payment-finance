@@ -34,3 +34,11 @@ The public tPF page now uses compact headline metrics, an asset allocation bar w
 Principal repayments are summed from `LoanRepaid` only; the additional recovery event is not counted again. Queue estimates remain variable, and the status distinguishes an overdue block from insufficient cash at the FIFO head. No collateralization or independent-verification claim is introduced.
 
 Browser review showed 1,850 AlphaUSD originated across four loans, 1,250 AlphaUSD of principal repaid, one active 600 AlphaUSD loan, and no pending withdrawals. TypeScript, normal production build, and GitHub Pages export completed successfully. Event history now uses individual RPC requests, paced workers and bounded rate-limit retries after the actual endpoint rejected bursts of range queries.
+
+## Alpha Remit and visual update — October 11
+
+The UI now names the existing sample borrower Alpha Remit, shows its illustrative 600 AlphaUSD prefunding request against an expected 1,000 AlphaUSD settlement, and links the narrative to actual loan state. Names appear in the credit ledger, loan details, settlement records, manager borrower list, and loan activity. The original fixture and diligence hash remain intact.
+
+Financial terminology is retained: NAV, principal, credit exposure, FIFO, TIP-20 memo, and value per tPF. Added context is concise and does not replace those labels. The palette uses blue actions, navy typography, teal cash, indigo principal, amber interest, and semantic status badges. Pending redemptions identify overdue debt, earlier FIFO requests, or insufficient liquidity.
+
+Browser review covered public balances, investor holdings, Alpha Remit’s facility and overdue loan detail, settlement confirmations, and the manager dashboard. The 390px mobile pool page has no document overflow. Exiting the borrower/manager demo returns to the public pool without retaining a permission gate. No signed transactions or contract changes were made.
