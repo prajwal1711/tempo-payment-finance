@@ -196,27 +196,33 @@ export function useLoans() {
       block?.number.toString(),
       drawEvents?.map((event) => String(event.args.loanId)).join(","),
     ],
-    enabled: !!activity.data && !!block,
+    enabled: deployment.deployed && !!block,
     placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!block) throw new Error("Waiting for the snapshot block.");
-      const loans = await Promise.all(
-        (drawEvents || []).map(async (event) => {
-          const id = event.args.loanId as bigint;
-          const [loan, debt] = await Promise.all([
-            readVault("getLoan", [id], block.number),
-            readVault("previewDebt", [id], block.number),
-          ]);
-          const [, interest, total] = debt as readonly bigint[];
-          return {
-            ...(loan as Loan),
-            id,
-            interest,
-            debt: total,
-            transactionHash: event.transactionHash,
-          } as LoanRecord;
-        }),
-      );
+      // The loan ledger is authoritative contract state. Do not hold it behind
+      // a scan of every historical block just to attach explorer receipts.
+      const nextId = (await readVault(
+        "nextLoanId",
+        [],
+        block.number,
+      )) as bigint;
+      const loans: LoanRecord[] = [];
+      for (let id = 1n; id < nextId; id++) {
+        const [loan, debt] = await Promise.all([
+          readVault("getLoan", [id], block.number),
+          readVault("previewDebt", [id], block.number),
+        ]);
+        const [, interest, total] = debt as readonly bigint[];
+        loans.push({
+          ...(loan as Loan),
+          id,
+          interest,
+          debt: total,
+          transactionHash: drawEvents?.find((event) => event.args.loanId === id)
+            ?.transactionHash,
+        });
+      }
       return {
         loans: loans.reverse(),
         timestamp: block.timestamp,
