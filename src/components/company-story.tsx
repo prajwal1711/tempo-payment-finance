@@ -6,7 +6,13 @@ import {
   CircleCheck,
   CircleAlert,
 } from "lucide-react";
-import { sampleCompany, companyName, isSampleCompany } from "@/lib/company";
+import {
+  sampleCompany,
+  companyName,
+  isSampleCompany,
+  settlementFixtureForLoan,
+} from "@/lib/company";
+import { parseUnits } from "viem";
 import { alpha, projectedInterest, timestamp } from "@/lib/format";
 import { useLoans, usePool } from "@/lib/hooks";
 import type { LoanRecord } from "@/lib/types";
@@ -28,6 +34,13 @@ export function CompanyStory({
     relevant?.find((loan) => loan.status === 1) ||
     relevant?.find((loan) => loan.debt > 0n) ||
     relevant?.[0];
+  const fundingAmount = loan?.originalPrincipal ?? sampleCompany.fundingAmount;
+  const settlement = loan ? settlementFixtureForLoan(loan) : undefined;
+  const settlementAmount = loan
+    ? settlement
+      ? parseUnits(settlement.expectedSettlementAmount, 6)
+      : undefined
+    : sampleCompany.settlementAmount;
   return (
     <section className="company-story">
       <div className="company-story-heading">
@@ -43,15 +56,19 @@ export function CompanyStory({
         <Badge variant="secondary">Simulated company</Badge>
       </div>
       <p className="company-need">
-        Alpha Remit’s sample funding request:{" "}
-        <b>{alpha(sampleCompany.fundingAmount, 0)}</b> to prefund UK → India
-        payouts against an expected card-settlement inflow.
+        Alpha Remit’s sample funding request: <b>{alpha(fundingAmount, 0)}</b>{" "}
+        to prefund UK → India payouts against an expected card-settlement
+        inflow.
       </p>
       <div className="company-story-facts">
         <div>
           <span>Expected card settlement</span>
-          <b>{alpha(sampleCompany.settlementAmount, 0)}</b>
-          <small>Illustrative settlement record</small>
+          <b>{alpha(settlementAmount, 0)}</b>
+          <small>
+            {settlementAmount === undefined
+              ? "No simulated record supplied"
+              : "Illustrative settlement record"}
+          </small>
         </div>
         <div>
           <span>Settlement wait</span>
@@ -62,10 +79,7 @@ export function CompanyStory({
           <span>Estimated 48-hour loan cost</span>
           <b>
             {alpha(
-              projectedInterest(
-                sampleCompany.fundingAmount,
-                sampleCompany.delaySeconds,
-              ),
+              projectedInterest(fundingAmount, sampleCompany.delaySeconds),
             )}
           </b>
           <small>Borrower pricing · 18% simple APR</small>

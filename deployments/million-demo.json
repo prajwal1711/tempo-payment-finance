@@ -1,0 +1,99 @@
+{
+  "chainId": 42431,
+  "vaultAddress": "0xe26e1e6812d8423f3ad64acb1ddf2ad0f4984e1f",
+  "assetAddress": "0x20c0000000000000000000000000000000000001",
+  "borrowerAddress": "0xf468ff61B7045200d7801461241600300C8076f2",
+  "fixture": {
+    "label": "SIMULATED SETTLEMENT — MILLION ALPHAUSD TESTNET DEMO",
+    "company": "Alpha Remit",
+    "corridor": "UK → India",
+    "poolTarget": "1000000",
+    "investorPositionTarget": "500000",
+    "prefundingRequirement": "500000",
+    "expectedSettlementAmount": "1000000",
+    "creditLimit": "750000",
+    "standardSettlementDelayHours": 48,
+    "settlementSource": "Demo card-settlement provider"
+  },
+  "createdAt": "2026-10-12T15:22:30.542Z",
+  "batchLabel": "ALPHA-REMIT-UK-IN-500K-1791818550546",
+  "transactions": [
+    {
+      "label": "Settle previous loan 4",
+      "role": "SETTLEMENT",
+      "hash": "0xe0866d448b3da4716e0cbf3aff0fc19566ab22a8564641ad67d49dc7ebe374dd",
+      "block": "39287838"
+    },
+    {
+      "label": "Deposit INVESTOR_A",
+      "role": "INVESTOR_A",
+      "hash": "0x45ede3554353770365a951c6caaed5e3bb661da561d4c44acc1b12366a63ad84",
+      "block": "39287842"
+    },
+    {
+      "label": "Deposit INVESTOR_B",
+      "role": "INVESTOR_B",
+      "hash": "0x8d0a529d0ffe5674432f51f7c611b9c5430b24a09fc4eaf935eeb145775c0c14",
+      "block": "39287906"
+    },
+    {
+      "label": "Approve 750,000 AlphaUSD credit line",
+      "role": "MANAGER",
+      "hash": "0x08e1a2c54560f8b489eb41ee31dd6a5c6e0dcf01a44b8712e8460fc96d80cab3",
+      "block": "39288007"
+    },
+    {
+      "label": "Alpha Remit draws 500,000 AlphaUSD",
+      "role": "BORROWER",
+      "hash": "0x01fa0eee633d1f2850b0ca439b20676a068c69a8ce5bb077f342e12bf8783b26",
+      "block": "39288154"
+    }
+  ],
+  "batchRef": "0x7f395d799f99ad0cb05bb8f87d6e35f176051cc76277264942ac09717517810d",
+  "loanId": "5",
+  "blockNumber": "39288261",
+  "snapshot": {
+    "cash": "500000000000",
+    "principal": "500000000000",
+    "interest": "188356",
+    "nav": "1000000188356",
+    "shares": "998855788535239156404580",
+    "hasOverdue": false,
+    "pendingRequests": "0",
+    "queueHead": "2",
+    "queueTail": "1",
+    "depositsPaused": false,
+    "drawsPaused": false,
+    "interestPaid": "1145502",
+    "writtenOff": "50000018",
+    "recovered": "50000018",
+    "timestamp": "1791818812"
+  },
+  "loan": {
+    "borrower": "0xf468ff61B7045200d7801461241600300C8076f2",
+    "batchRef": "0x7f395d799f99ad0cb05bb8f87d6e35f176051cc76277264942ac09717517810d",
+    "originalPrincipal": "500000000000",
+    "principalOutstanding": "500000000000",
+    "interestAccrued": "0",
+    "accrualRemainder": "0",
+    "drawnAt": "1791818746",
+    "dueAt": "1791991546",
+    "lastAccruedAt": "1791818746",
+    "status": 1
+  },
+  "investors": [
+    {
+      "role": "INVESTOR_A",
+      "address": "0xD29fA059075353530C0A2C80e62409cC1f98e983",
+      "heldShares": "499427894268525779268171",
+      "positionValue": "500000094178"
+    },
+    {
+      "role": "INVESTOR_B",
+      "address": "0xA46f1169B0c90Cc8a003Dc8AE1C1A72B2584502d",
+      "heldShares": "499427894266713377136409",
+      "positionValue": "500000094177"
+    }
+  ],
+  "verifiedAt": "2026-10-12T15:26:56.684Z"
+}

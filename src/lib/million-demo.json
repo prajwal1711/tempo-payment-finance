@@ -1,0 +1,19 @@
+{
+  "label": "SIMULATED SETTLEMENT — MILLION ALPHAUSD TESTNET DEMO",
+  "company": "Alpha Remit",
+  "corridor": "UK → India",
+  "poolTarget": "1000000",
+  "investorPositionTarget": "500000",
+  "prefundingRequirement": "500000",
+  "expectedSettlementAmount": "1000000",
+  "creditLimit": "750000",
+  "standardSettlementDelayHours": 48,
+  "settlementSource": "Demo card-settlement provider",
+  "loanId": "5",
+  "batchRef": "0x7f395d799f99ad0cb05bb8f87d6e35f176051cc76277264942ac09717517810d",
+  "batchLabel": "ALPHA-REMIT-UK-IN-500K-1791818550546",
+  "borrowerAddress": "0xf468ff61B7045200d7801461241600300C8076f2",
+  "drawnAt": "1791818746",
+  "dueAt": "1791991546",
+  "drawTransaction": "0x01fa0eee633d1f2850b0ca439b20676a068c69a8ce5bb077f342e12bf8783b26"
+}

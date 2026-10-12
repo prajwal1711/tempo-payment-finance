@@ -190,6 +190,10 @@ export function HistoryChart({
               }
               tickFormatter={(value) =>
                 Number(value).toLocaleString("en-GB", {
+                  notation:
+                    metric === "sharePrice" && !personal
+                      ? "standard"
+                      : "compact",
                   maximumFractionDigits:
                     metric === "sharePrice" && !personal ? 6 : 2,
                 })

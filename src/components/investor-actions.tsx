@@ -12,6 +12,7 @@ import {
 } from "@/lib/hooks";
 import { readVault, vaultAddress } from "@/lib/chain";
 import { alpha, parseAmount, shares } from "@/lib/format";
+import { sampleCompany } from "@/lib/company";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ActionDialog } from "./action-dialog";
@@ -23,7 +24,7 @@ export function InvestorActions({
   onlyDeposit?: boolean;
 }) {
   const [action, setAction] = useState<InvestorAction>();
-  const [amount, setAmount] = useState("100");
+  const [amount, setAmount] = useState(sampleCompany.investorDepositInput);
   const [quantity, setQuantity] = useState("10");
   const [receiver, setReceiver] = useState("");
   const { account, investorAddress, demo } = useWorkspace();

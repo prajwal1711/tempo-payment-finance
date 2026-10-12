@@ -13,6 +13,7 @@
     "probe": "node --env-file=.env.local scripts/probe.mjs",
     "deploy": "node --env-file=.env.local scripts/deploy.mjs",
     "seed": "node --env-file=.env.local scripts/seed.mjs",
+    "demo:million": "node --env-file=.env.local scripts/stage-million-demo.mjs",
     "verify:live": "node --env-file=.env.local scripts/verify-live.mjs",
     "manage": "node --env-file=.env.local scripts/manage.mjs",
     "test:ui": "tsx --test tests/ui.test.ts",

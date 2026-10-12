@@ -1,6 +1,12 @@
 "use client";
 import { useState } from "react";
-import { companyName, isSampleCompany, sampleCompany } from "@/lib/company";
+import {
+  companyName,
+  isSampleCompany,
+  sampleCompany,
+  settlementFixtureForLoan,
+} from "@/lib/company";
+import { parseUnits } from "viem";
 import { CompanyStory } from "../company-story";
 import {
   useBorrower,
@@ -20,7 +26,6 @@ import {
 } from "@/lib/format";
 import { drawReasons, type Borrower } from "@/lib/types";
 import { diligenceHash, fixture } from "@/lib/fixture";
-import deployment from "@/lib/deployment.json";
 import { useWorkspace } from "../workspace-context";
 import { LoanDetail, useLoanSelection } from "../loan-detail";
 import { ActionDialog } from "../action-dialog";
@@ -57,7 +62,7 @@ export function BorrowerPage({
     tx = useTransaction();
   const selection = useLoanSelection();
   const [drawOpen, setDrawOpen] = useState(false),
-    [amount, setAmount] = useState("600"),
+    [amount, setAmount] = useState(sampleCompany.fundingInput),
     [reference, setReference] = useState("UK-IN-CARD-NEW"),
     [tenor, setTenor] = useState("172800");
   const loans = allLoans.data?.loans.filter(
@@ -208,9 +213,8 @@ export function BorrowerPage({
           />
           {loans?.length ? (
             loans.map((loan) => {
-              const known =
-                loan.borrower.toLowerCase() ===
-                deployment.demoBorrowerAddress.toLowerCase();
+              const settlement = settlementFixtureForLoan(loan);
+              const known = !!settlement;
               const confirmation = activity.data?.find(
                 (event) =>
                   event.eventName === "SettlementRepaid" &&
@@ -281,7 +285,7 @@ export function BorrowerPage({
                       <span>Settlement source · Simulated</span>
                       <b>
                         {known
-                          ? fixture.settlementSource
+                          ? settlement!.settlementSource
                           : "No simulated record supplied"}
                       </b>
                     </div>
@@ -289,13 +293,28 @@ export function BorrowerPage({
                       <span>Expected amount · Simulated</span>
                       <b>
                         {known
-                          ? `${fixture.expectedSettlementAmount} AlphaUSD`
+                          ? alpha(
+                              parseUnits(
+                                settlement!.expectedSettlementAmount,
+                                6,
+                              ),
+                            )
                           : "—"}
                       </b>
                     </div>
                     <div className="ledger-row">
                       <span>Expected arrival · Simulated</span>
-                      <b>{known ? timestamp(loan.drawnAt + 172800n) : "—"}</b>
+                      <b>
+                        {settlement
+                          ? timestamp(
+                              loan.drawnAt +
+                                BigInt(
+                                  settlement.standardSettlementDelayHours *
+                                    3600,
+                                ),
+                            )
+                          : "—"}
+                      </b>
                     </div>
                     <div className="ledger-row">
                       <span>Prefunding principal · On-chain</span>

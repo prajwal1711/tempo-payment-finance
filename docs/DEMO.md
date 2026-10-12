@@ -4,20 +4,21 @@
 
 1. Run `pnpm typecheck`, `pnpm contracts:test`, and `pnpm build`.
 2. Complete Tempo Wallet connection in the popup. Fund each role with AlphaUSD and PathUSD.
-3. Nominate and accept a manager wallet; approve your borrower with a 750 AlphaUSD limit and a 48-hour maximum. Use separate investor and settlement-provider wallets.
+3. Nominate and accept a manager wallet; approve your borrower with a 750,000 AlphaUSD limit and a 48-hour maximum. Use separate investor and settlement-provider wallets.
 4. Repay existing staged active debt on `/settlement`. Clear pending exits. Confirm global overdue status is false.
-5. Establish approximately 1,000 AlphaUSD NAV (500 each from two investors). On a previously used deployment, account for existing supply rather than duplicating these deposits. A fresh deployment gives the cleanest recording state.
-6. Use new batch references for every loan; references are permanently unique per borrower.
-7. Keep real interest and real timestamps. A 60-second demonstration tenor changes maturity, not APR. Record waiting separately and cut it honestly.
+5. Establish approximately 1,000,000 AlphaUSD NAV (500,000 position value each from two investors). `pnpm demo:million` stages this on the existing Moderato vault: it repays the old small loan, tops up existing positions, approves a 750,000 line, and draws 500,000 for Alpha Remit. It saves receipts in `deployments/million-demo.json` and resumes using the saved batch if RPC access fails. Rerunning after success reads the existing loan; it does not open another one. Do not delete the manifest. Existing history and fractional earnings remain real.
+6. The staged state has 500,000 AlphaUSD cash, 500,000 active principal and approximately 50% utilization. Pool NAV grows above 1,000,000 as actual interest accrues. Alpha Remit's simulated expected settlement is 1,000,000 AlphaUSD; this is a fixture, while the loan and token movements are on-chain. The original diligence fixture remains unchanged.
+7. Use new batch references for every loan; references are permanently unique per borrower. The staging manifest supplies the current loan ID, batch and draw receipt. To record a new draw after staging, repay this loan first; the remaining credit limit is only 250,000.
+8. Keep real interest and real timestamps. A 60-second demonstration tenor changes maturity, not APR. Record waiting separately and cut it honestly.
 
 ## Product demo, at most three minutes
 
 | Time | Screen / action | Narration |
 |---|---|---|
 | 0:00–0:20 | Investor deposit and successful receipt | “Investors supply AlphaUSD and own transferable pool shares. Approval and deposit use one Tempo signature.” |
-| 0:20–0:40 | Approved borrower and settlement record | “This simulated remittance company needs payout capital before card settlement arrives. Its approved line is 750 dollars.” |
-| 0:40–1:00 | Draw 600 / 48h, explorer memo | “The borrower draws 600. Cash becomes a receivable; pool value is conserved. The transfer memo identifies this batch.” |
-| 1:00–1:15 | Ticker and projection | “Interest is 18% annualized by elapsed time. Forty-eight hours costs about 59 cents; a few minutes produces tiny actual interest.” |
+| 0:20–0:40 | Approved borrower and settlement record | “Alpha Remit needs payout capital before card settlement arrives. Its approved line is 750,000 AlphaUSD.” |
+| 0:40–1:00 | Draw 500,000 / 48h, explorer memo | “The borrower draws 500,000 from a million-AlphaUSD pool. Cash becomes a receivable; NAV is conserved. The transfer memo identifies this batch.” |
+| 1:00–1:15 | Ticker and projection | “Interest is 18% annualized by elapsed time. Forty-eight hours costs about 493.15 AlphaUSD. The live ticker shows actual accrued interest.” |
 | 1:15–1:35 | Partial/full repayment | “Repayment covers interest first, then principal. Principal repayment reopens borrowing capacity.” |
 | 1:35–1:50 | New 60s loan; cut to overdue | “This explicitly short testnet tenor lets us show delinquency using actual timestamps. New borrowing is blocked.” |
 | 1:50–2:10 | Investor A queues exit | “Shares remain exposed to the pool while queued. Active overdue loans also block processing.” |

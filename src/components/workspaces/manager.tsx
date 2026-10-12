@@ -141,7 +141,7 @@ export function ManagerPage({
   ] as Address[];
   const [configOpen, setConfigOpen] = useState(false),
     [wallet, setWallet] = useState(""),
-    [limit, setLimit] = useState("750"),
+    [limit, setLimit] = useState(sampleCompany.creditLimit),
     [hours, setHours] = useState("48"),
     [enabled, setEnabled] = useState("enabled"),
     [documentHash, setDocumentHash] = useState<string>(diligenceHash);
@@ -195,7 +195,7 @@ export function ManagerPage({
               disabled={!owner}
               onClick={() => {
                 setWallet("");
-                setLimit("750");
+                setLimit(sampleCompany.creditLimit);
                 setHours("48");
                 setEnabled("enabled");
                 setDocumentHash(diligenceHash);

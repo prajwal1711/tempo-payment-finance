@@ -1,0 +1,12 @@
+{
+  "label": "SIMULATED SETTLEMENT — MILLION ALPHAUSD TESTNET DEMO",
+  "company": "Alpha Remit",
+  "corridor": "UK → India",
+  "poolTarget": "1000000",
+  "investorPositionTarget": "500000",
+  "prefundingRequirement": "500000",
+  "expectedSettlementAmount": "1000000",
+  "creditLimit": "750000",
+  "standardSettlementDelayHours": 48,
+  "settlementSource": "Demo card-settlement provider"
+}
